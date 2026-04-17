@@ -19,22 +19,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for lib
-from lib import SKIP_DIRS, SKIP_FILES
+from lib import SKIP_DIRS, SKIP_FILES, find_wiki_pages
 
 WIKI = instance_root() / "wiki"
 INDEX_DIR = WIKI / ".index"
 MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384
-
-
-def find_wiki_pages():
-    pages = []
-    for root, dirs, files in os.walk(WIKI):
-        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
-        for f in files:
-            if f.endswith(".md") and f not in SKIP_FILES:
-                pages.append(Path(root) / f)
-    return sorted(pages)
 
 
 def parse_sections(path):
@@ -101,7 +91,7 @@ def main():
     from sentence_transformers import SentenceTransformer
     model = SentenceTransformer(MODEL_NAME)
 
-    pages = find_wiki_pages()
+    pages = find_wiki_pages(WIKI)
     print(f"Processing {len(pages)} pages...")
 
     # Collect all chunks
