@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sprue"
+dynamic = ["version"]
+description = "Reusable engine for LLM-operated knowledge bases"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "Sprue Contributors"}]
+keywords = ["llm", "knowledge-base", "markdown", "wiki"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Documentation",
+]
+dependencies = [
+    "click>=8.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+search = [
+    "sentence-transformers>=2.2",
+    "numpy>=1.24",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-click>=1.1",
+]
+
+[project.scripts]
+sprue = "sprue.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/sprue-kb/sprue"
+Repository = "https://github.com/sprue-kb/sprue"
+
+[tool.hatch.version]
+path = "src/sprue/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sprue"]
