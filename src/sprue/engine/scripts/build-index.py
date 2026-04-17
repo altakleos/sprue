@@ -17,6 +17,7 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
+from lib import SKIP_DIRS, SKIP_FILES as SKIP  # backwards compat
 
 # T11: Route engine/instance paths through resolvers.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
@@ -24,8 +25,6 @@ from sprue.engine_root import instance_root
 
 WIKI = instance_root() / "wiki"
 INDEX_DIR = WIKI / ".index"
-SKIP = {"index.md", "overview.md"}
-SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 
 _cfg = load_config()
 FACETS = _cfg["facets"]

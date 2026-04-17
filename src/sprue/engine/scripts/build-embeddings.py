@@ -18,10 +18,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for lib
+from lib import SKIP_DIRS, SKIP_FILES
+
 WIKI = instance_root() / "wiki"
 INDEX_DIR = WIKI / ".index"
-SKIP_FILES = {"index.md", "overview.md"}
-SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384
 

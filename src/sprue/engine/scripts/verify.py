@@ -36,11 +36,12 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for lib
+from lib import SKIP_DIRS, SKIP_FILES
+
 ROOT = instance_root()
 RULES_FILE = instance_root() / "memory" / "rules.yaml"
 WIKI = instance_root() / "wiki"
-SKIP_DIRS = {".index", ".obsidian", "domains"}
-SKIP_FILES = {"overview.md"}
 RULE_TIMEOUT_SEC = 120
 
 

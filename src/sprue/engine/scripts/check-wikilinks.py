@@ -12,8 +12,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for lib
+from lib import SKIP_DIRS
+
 WIKI = instance_root() / "wiki"
-SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 
 def find_pages():
     slugs = set()

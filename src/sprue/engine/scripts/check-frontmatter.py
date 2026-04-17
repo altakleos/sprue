@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
+from lib import SKIP_DIRS, SKIP_FILES
 
 # T11: Route engine/instance paths through resolvers.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
@@ -25,8 +26,6 @@ VALID_TYPES = set(_cfg["page_types"].keys())
 REQUIRED = ["type"] + facet_names + ["decay_tier", "confidence", "provenance", "author", "last_verified", "risk_tier", "summary"]
 
 WIKI = instance_root() / "wiki"
-SKIP_DIRS = {".obsidian", ".index", "domains"}
-SKIP_FILES = {"index.md", "overview.md"}
 
 errors = []
 for root, dirs, files in os.walk(WIKI):
