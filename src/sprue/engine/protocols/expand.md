@@ -175,7 +175,8 @@ Auto is **stricter**, not looser — less oversight means tighter caps. See `ins
 ### Mode behavior in each phase
 
 **Phase 3 (topic approval):**
-- manual / semi: STOP. Present ranked table. Wait for user selection.
+- **Scoped invocation** (e.g., `expand into breed profiles`): The user's scope IS the topic selection. Select all discovered candidates that match the scope. Do NOT re-present the table for approval — the user already told you what they want. Proceed directly to Phase 4.
+- manual / semi (unscoped `expand`): STOP. Present ranked table. Wait for user selection.
 - auto: LLM selects top `auto.max_topics` topics scoring ≥ `auto.min_topic_score`. No stop. Log selections.
 
 **Phase 4 (source research + presentation):**
