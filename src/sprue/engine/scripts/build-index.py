@@ -17,7 +17,7 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
-from lib import SKIP_DIRS, SKIP_FILES as SKIP  # backwards compat
+from lib import SKIP_DIRS, SKIP_FILES as SKIP, parse_frontmatter  # backwards compat
 
 # T11: Route engine/instance paths through resolvers.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
@@ -48,19 +48,6 @@ for _slug, _cfg in RELATIONSHIP_TYPES.items():
     REL_DISPLAY_TO_SLUG[_cfg.get("display", "").lower()] = _slug
     REL_DISPLAY_TO_SLUG[_slug] = _slug
 
-
-def parse_frontmatter(path):
-    """Extract YAML frontmatter from a markdown file."""
-    text = path.read_text(encoding="utf-8")
-    m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
-    if not m:
-        return {}, text
-    try:
-        fm = yaml.safe_load(m.group(1)) or {}
-    except yaml.YAMLError:
-        fm = {}
-    body = text[m.end():]
-    return fm, body
 
 
 def extract_wikilinks(body):

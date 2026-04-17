@@ -28,7 +28,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for lib
-from lib import SKIP_DIRS, SKIP_FILES as SKIP  # backwards compat
+from lib import SKIP_DIRS, SKIP_FILES as SKIP, parse_frontmatter  # backwards compat
 
 warnings.warn(
     "verify-content.py is deprecated and will be removed in a future release. "
@@ -61,18 +61,6 @@ CLAIM_PATTERNS = [
     # Config keys: key = value, key: value (in code blocks)
     (r'^(\w[\w.-]+)\s*[=:]\s*(.+)$', "config"),
 ]
-
-
-def parse_frontmatter(path):
-    text = path.read_text(encoding="utf-8")
-    m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
-    if not m:
-        return {}, text
-    try:
-        fm = yaml.safe_load(m.group(1)) or {}
-    except yaml.YAMLError:
-        fm = {}
-    return fm, text[m.end():]
 
 
 def extract_claims(body, slug):
