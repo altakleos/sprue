@@ -299,7 +299,8 @@ expand:
   default_mode: semi            # manual | semi | auto — mode when no flag is passed
   max_suggestions: 15           # max topic suggestions per run
   max_imports: 5                # max sources to import per run
-  min_shared_facets: 1          # candidates must share N+ facet values with existing content
+  min_shared_facets: 1          # candidates below this get a scoring penalty (not rejected)
+  facet_miss_penalty: 0.15      # score penalty for candidates below min_shared_facets
   research_depth: standard
   enhance_signal_bonus: 0.10
   semi:
