@@ -174,6 +174,25 @@ size_profiles:
 
 The `inbox/` directory is a convenience feature — drop files there for later triage. Contents are not version-controlled. To process an inbox item: `ingest inbox/<file>` moves it through the normal import pipeline and removes it from inbox/.
 
+## Optional Validators
+
+The engine ships validators your instance can enable by registering them
+in `memory/rules.yaml`. Register only the ones you want enforced:
+
+| Validator | Enforces |
+|---|---|
+| `.sprue/scripts/check-sources.py` | Every LLM-authored `provenance: sourced` page declares non-empty `sources:` (ADR-0028) |
+| `.sprue/scripts/check-package-contents.py` | Built wheels contain no instance paths (CI gate) |
+
+Example `memory/rules.yaml` entry:
+
+```yaml
+rules:
+  - name: sources-declared
+    command: python3 .sprue/scripts/check-sources.py --quiet
+    scope: whole
+```
+
 ## Going Deeper
 
 - `.sprue/engine.md` — Full architecture, command reference, schema, constraints
