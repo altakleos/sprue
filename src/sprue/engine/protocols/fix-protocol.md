@@ -5,8 +5,8 @@ This runs as part of the `maintain` operation, after `lint` and `verify-content`
 
 ## Prerequisites
 
-1. Run `python3 sprue/scripts/verify-content.py` to extract claims from pages
-2. Run `python3 sprue/scripts/fix-content.py --tier critical` (or other filter) to fetch authoritative sources and prepare context files
+1. Run `python3 .sprue/scripts/verify-content.py` to extract claims from pages
+2. Run `python3 .sprue/scripts/fix-content.py --tier critical` (or other filter) to fetch authoritative sources and prepare context files
 3. Context files are in `wiki/.index/fix-context/{slug}.md`
 
 ## Agent Workflow
@@ -98,7 +98,7 @@ After updating a page with active corrections, evaluate each correction:
 
 ## Integration with Maintenance
 
-In `sprue/protocols/maintain.md`, the verify-and-fix cycle runs after lint:
+In `.sprue/protocols/maintain.md`, the verify-and-fix cycle runs after lint:
 
 ```
 lint → verify-content (extract claims) → fix-content (fetch sources) → agent fixes → rebuild-index

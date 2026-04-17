@@ -2,7 +2,7 @@
 
 Governs when to create a new page vs add a section, and when to split or merge existing pages. Applies during **compile**, **maintain**, and **enhance** operations.
 
-*Requires `sprue/engine.md` in context (loaded via bootstrap).* Read `sprue/defaults.yaml` → `page_types:` for each type's `size_profile`. Read `instance/config.yaml` `size_profiles` for the limits.
+*Requires `.sprue/engine.md` in context (loaded via bootstrap).* Read `.sprue/defaults.yaml` → `page_types:` for each type's `size_profile`. Read `instance/config.yaml` `size_profiles` for the limits.
 
 ---
 
@@ -20,7 +20,7 @@ Tiebreaker: **"Would I merge this back in six months?"** If probably yes, write 
 |---|---|---|
 | Minimum page size | `size_profiles.<profile>.min_words` | Never create a page below this. Inline as a section. |
 | Maximum page size | `size_profiles.<profile>.max_words` | Must split (standard/expansive) or tighten prose (compact). For compact types, word count excludes code blocks and tables. |
-| Compact types never split | Types with `size_profile: compact` in `sprue/defaults.yaml` → `page_types:` | If too long, tighten prose or reclassify the page type. Do not split. |
+| Compact types never split | Types with `size_profile: compact` in `.sprue/defaults.yaml` → `page_types:` | If too long, tighten prose or reclassify the page type. Do not split. |
 | Inbound links | ≥1 wikilink from another page | Every page must be reachable. |
 | Link maintenance | All operations | Splits and merges must update all inbound wikilinks. |
 

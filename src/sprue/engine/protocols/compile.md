@@ -1,6 +1,6 @@
 # Compile Protocol
 
-*Requires `AGENTS.md` and `sprue/engine.md` in context (loaded via bootstrap).*
+*Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
 **Trigger:** "compile", "process", "build pages", or `status` showing uncompiled items.
 
@@ -35,7 +35,7 @@ If the queue is empty: `✅ Nothing to compile. All raw files are up to date.`
 
 ## Step 2: Read pipeline configuration
 
-Read `sprue/schemas/pipeline.yaml` (if it exists). Apply profile if specified (`--profile <name>`). Apply any CLI overrides. Report effective config:
+Read `.sprue/schemas/pipeline.yaml` (if it exists). Apply profile if specified (`--profile <name>`). Apply any CLI overrides. Report effective config:
 
 ```
 ⚙️  Compiling N sources (profile: <name>, depth: <depth>, strategy: <strategy>)
@@ -93,13 +93,13 @@ For each approved item, in order:
 1. Read the raw file's entry from `instance/state/imports.yaml` (title and content_type for context)
 2. Read the raw file content in full
 3. Classify: determine domain, topic, page type, and wiki placement (this is COMPILE's primary classification job — IMPORT only detected format)
-4. Read `sprue/prompts/<strategy>.md` for the compilation prompt template (or use default wiki_page strategy)
+4. Read `.sprue/prompts/<strategy>.md` for the compilation prompt template (or use default wiki_page strategy)
 5. Read the wiki manifest for context (existing pages, topic values, domain values)
-6. **Assign facets** — read `sprue/defaults.yaml` → `facets:` for the list of facets, their descriptions, and guardrails. For each facet:
+6. **Assign facets** — read `.sprue/defaults.yaml` → `facets:` for the list of facets, their descriptions, and guardrails. For each facet:
    a. Extract all existing values for that facet from the manifest — this IS the vocabulary.
    b. Check `instance/config.yaml` overrides — if your candidate has an editorial override, use it.
    c. Compare your candidate against existing manifest values: resolve abbreviations, normalize variants (plurals, hyphenation) to match existing forms.
-   d. Respect per-facet granularity from `sprue/defaults.yaml` → `facets:` — conservative facets (those with `creation_threshold`) strongly prefer reusing existing values. Liberal facets allow free creation with deduplication.
+   d. Respect per-facet granularity from `.sprue/defaults.yaml` → `facets:` — conservative facets (those with `creation_threshold`) strongly prefer reusing existing values. Liberal facets allow free creation with deduplication.
 
 7. **Place the page in a wiki directory:**
    a. Read `wiki/.index/manifest.yaml`. Group existing pages by `dir` to understand what each directory contains — the pages ARE the scope. The set of directories is whatever the manifest currently shows; do not assume a fixed list.
@@ -111,11 +111,11 @@ For each approved item, in order:
 
       When in doubt, stay flat. Sparse directories cost more navigation than slightly-oversized flat ones. The same criteria apply recursively for subdirectories.
    d. The directory is a shelf, not a classification — facets carry the fine-grained tagging.
-8. Generate the wiki page following sprue/engine.md conventions:
-   - Full frontmatter per `sprue/engine.md` schema. Assign:
-     - `type`, facet fields from `sprue/defaults.yaml` → `facets:`, `decay_tier`, `risk_tier`, `summary`, `author: llm` per type contract and content.
-     - `confidence: medium` (default) for LLM-authored pages. Use `confidence: low` only when the page itself is explicitly speculative or opinion-based. **Never `high`** — `high` is reserved for pages that `sprue/protocols/verify.md` has fact-checked against authoritative sources. Writing `high` at compile time is a protocol violation (see `sprue/engine.md` Confidence Invariant); it is caught by `memory/rules.yaml` but should not be written in the first place.
-     - `last_verified: null` — compile does not verify; only `sprue/protocols/verify.md` sets this.
+8. Generate the wiki page following .sprue/engine.md conventions:
+   - Full frontmatter per `.sprue/engine.md` schema. Assign:
+     - `type`, facet fields from `.sprue/defaults.yaml` → `facets:`, `decay_tier`, `risk_tier`, `summary`, `author: llm` per type contract and content.
+     - `confidence: medium` (default) for LLM-authored pages. Use `confidence: low` only when the page itself is explicitly speculative or opinion-based. **Never `high`** — `high` is reserved for pages that `.sprue/protocols/verify.md` has fact-checked against authoritative sources. Writing `high` at compile time is a protocol violation (see `.sprue/engine.md` Confidence Invariant); it is caught by `memory/rules.yaml` but should not be written in the first place.
+     - `last_verified: null` — compile does not verify; only `.sprue/protocols/verify.md` sets this.
      - **Provenance**: set `provenance: sourced` when compiling FROM a raw file. Set `provenance: synthesized` when creating a page with no raw source (e.g., via expand gap-filling or enhance with no imported material). If the page merges raw sources with LLM synthesis, use `sourced` — the raw source anchors the provenance; LLM synthesis is the compilation, not the origin.
      - **Sources**: for `provenance: sourced` pages, populate a `sources` list in frontmatter linking the page to its raw file(s) and original URLs. Look up the raw file path from the compile queue item and the source URL from `instance/state/imports.yaml`:
        ```yaml
@@ -124,7 +124,7 @@ For each approved item, in order:
            url: https://clynt.com/blog/kafka-complete-guide
        ```
        For `provenance: synthesized` pages, omit the `sources` field or write `sources: []`.
-   - Section structure per page type contract (read `sprue/defaults.yaml` → `page_types:`)
+   - Section structure per page type contract (read `.sprue/defaults.yaml` → `page_types:`)
    - For `entity` type pages: populate `## Attributes` and `## Relationships`:
      - **Attributes**: "Kind" is required (must match `instance/entity-types.yaml` registry, human-readable form). Add `config.entity.min_attributes`–`config.entity.max_attributes` other attributes as applicable: Default Port, Language, License, Managed Offerings, etc. Omit attributes that are unknown or not applicable. Format: `- **Key**: Value`
      - **Relationships**: Read `instance/entity-types.yaml` `relationship_types` for allowed types. Use display names (e.g., "Competes with", "Integrates with"). Use `[[wikilinks]]` for targets that have wiki pages. Include `config.entity.min_relationships`–`config.entity.max_relationships` relationship types per entity. Format: `- **Display Name**: [[target1]], [[target2]]`
@@ -133,8 +133,8 @@ For each approved item, in order:
    - Outbound `[[wikilinks]]` to existing pages
    - Mermaid diagram if the topic involves a flow/lifecycle/decision (and `diagrams: true` in config)
 9. Write to `wiki/<directory>/<slug>.md`
-10. Run `bash sprue/verify.sh --file <path>`. Fix violations before proceeding.
-11. Run cross-link single-page mode: scan existing pages for inbound links to the new page (per `sprue/protocols/cross-link.md` rules)
+10. Run `bash .sprue/verify.sh --file <path>`. Fix violations before proceeding.
+11. Run cross-link single-page mode: scan existing pages for inbound links to the new page (per `.sprue/protocols/cross-link.md` rules)
 
 ### Existing pages (🔄 Update)
 
@@ -143,7 +143,7 @@ Follow the surgical merge protocol:
 2. Identify the delta — what the raw source adds
 3. Add new content to the appropriate section using `str_replace`
 4. NEVER remove, rephrase, or reorganize existing content
-5. Run `bash sprue/verify.sh --file <path>`
+5. Run `bash .sprue/verify.sh --file <path>`
 
 ### Conflicts (⚠️)
 
@@ -158,7 +158,7 @@ After EACH page is written successfully, append to `instance/state/compilations.
 - raw: <raw-file-path>
   raw_hash: sha256:<hash8>
   facets:
-    # One entry per facet defined in sprue/defaults.yaml → facets:
+    # One entry per facet defined in .sprue/defaults.yaml → facets:
     domain: [<values>]
     topic: [<values>]
     aspect: [<values>]
@@ -169,7 +169,7 @@ After EACH page is written successfully, append to `instance/state/compilations.
 
 After every 3-5 pages, update `wiki/overview.md` and `memory/log.jsonl`.
 
-After the last page of a run, re-run `python3 sprue/scripts/build-index.py` so the derived indexes (including `wiki/.index/by-slug-raws.yaml`, consumed by verify Phase 2a and prioritize.py) reflect the newly added slugs. The ledger at `instance/state/compilations.yaml` is append-only truth; the index is regenerable.
+After the last page of a run, re-run `python3 .sprue/scripts/build-index.py` so the derived indexes (including `wiki/.index/by-slug-raws.yaml`, consumed by verify Phase 2a and prioritize.py) reflect the newly added slugs. The ledger at `instance/state/compilations.yaml` is append-only truth; the index is regenerable.
 
 ---
 
@@ -208,7 +208,7 @@ compile --profile claims      # extract verifiable claims
 compile --profile code        # code examples only
 ```
 
-Read `sprue/schemas/pipeline.yaml` for profile definitions. Read `sprue/protocols/pipeline-config.md` for the full guide.
+Read `.sprue/schemas/pipeline.yaml` for profile definitions. Read `.sprue/protocols/pipeline-config.md` for the full guide.
 
 Different sources in the same batch can use different profiles:
 ```
@@ -226,7 +226,7 @@ To recompile a previously compiled raw file:
 compile --recompile wiki/<dir>/<page>.md
 ```
 
-This traces back to the original raw source via `wiki/.index/by-slug-raws.yaml` (the derived slug → raw index, generated by `sprue/scripts/build-index.py`), re-reads the raw file(s), and re-runs compilation with the specified profile. The existing wiki page is replaced.
+This traces back to the original raw source via `wiki/.index/by-slug-raws.yaml` (the derived slug → raw index, generated by `.sprue/scripts/build-index.py`), re-reads the raw file(s), and re-runs compilation with the specified profile. The existing wiki page is replaced.
 
 ---
 
@@ -234,6 +234,6 @@ This traces back to the original raw source via `wiki/.index/by-slug-raws.yaml` 
 
 - Read `memory/rules.yaml` and `memory/corrections.md` before any write
 - Never modify `raw/`, `notebook/`, or `inbox/`
-- Follow `sprue/protocols/granularity.md` for new-page vs section decisions
+- Follow `.sprue/protocols/granularity.md` for new-page vs section decisions
 - Follow `instance/identity.md` for depth, tone, and scope (what to extract, what to strip)
 - Log every change to `memory/log.jsonl`

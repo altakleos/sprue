@@ -27,7 +27,7 @@ Map user intent to level. If ambiguous, ask.
 ### 2. Show inventory (dry-run)
 
 ```bash
-bash sprue/reset.sh --level <level>
+bash .sprue/reset.sh --level <level>
 ```
 
 Present the output to the user. This shows exactly what will be deleted, cleared, and preserved.
@@ -41,7 +41,7 @@ Ask the user to type the level name to confirm. Do NOT accept "yes" or "y" — r
 ### 4. Execute
 
 ```bash
-bash sprue/reset.sh --level <level> --confirm
+bash .sprue/reset.sh --level <level> --confirm
 ```
 
 The script creates a git tag `pre-reset/<timestamp>` before deleting anything. Report the tag name to the user.

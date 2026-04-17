@@ -1,6 +1,6 @@
 # Expand Protocol
 
-*Requires `AGENTS.md` and `sprue/engine.md` in context (loaded via bootstrap).*
+*Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
 **Trigger:** "expand", "grow the wiki", "what's missing", "find gaps", or similar.
 
@@ -40,7 +40,7 @@ Apply 6 discovery strategies. Deduplicate across strategies — Strategy 0 runs 
 
 **Strategy 0: Enhance-flagged gaps** — topics flagged by `enhance` as needing new pages. Read from `instance/state/enhancements.yaml`, entries with `status: pending`. These are pre-validated by multi-agent quality analysis and carry high signal. Skip if the file doesn't exist or has no pending entries.
 
-**Strategy 1: Dangling links** — topics already `[[wikilinked]]` but with no page. Highest signal. Targets queued by `sprue/protocols/resolve-relationships.md` (entries with `source: rel-link` in `instance/state/expansions.yaml`) are first-class here — their acceptance criteria are already written in the source pages; prefer them over topic-proximity gaps.
+**Strategy 1: Dangling links** — topics already `[[wikilinked]]` but with no page. Highest signal. Targets queued by `.sprue/protocols/resolve-relationships.md` (entries with `source: rel-link` in `instance/state/expansions.yaml`) are first-class here — their acceptance criteria are already written in the source pages; prefer them over topic-proximity gaps.
 
 **Strategy 2: Cluster edge expansion** — for each directory, what's the next most important topic the target audience (see `instance/identity.md`) would need? Propose 2-3 per directory with justification.
 
@@ -79,7 +79,7 @@ Present the results as a ranked table with enhance-flagged gaps in a distinct se
 ```
  ── Enhance-flagged gaps (from enhance run YYYY-MM-DD) ────────────────────
  #   Topic                    Type        Dir             Signal              Score
- E1  grpc-load-balancing      concept     sprue/       enhance: Graph      0.91
+ E1  grpc-load-balancing      concept     .sprue/      enhance: Graph      0.91
  E2  kafka-exactly-once       concept     data/           enhance: Content    0.87
 
  ── Expand discoveries ────────────────────────────────────────────────────
@@ -88,7 +88,7 @@ Present the results as a ranked table with enhance-flagged gaps in a distinct se
  3   circuit-breaker-overhead  recipe      architecture/   conflict follow-up  0.85
  ...
  ─   ──────────────────────   ─────────   ──────────────  ──────────────────  ─────
- ×   kubernetes-basics        concept     sprue/       cluster edge        0.45  REJECTED: below audience bar
+ ×   kubernetes-basics        concept     .sprue/      cluster edge        0.45  REJECTED: below audience bar
 ```
 
 **STOP. Wait for approval.** Accept: `all`, `1,3,E1`, `all except E2,4`, `none`.
@@ -99,7 +99,7 @@ Present the results as a ranked table with enhance-flagged gaps in a distinct se
 
 For each approved topic:
 
-1. **Research online** — find 1-3 authoritative sources per topic. The LLM ranks source authority based on the KB identity in `instance/identity.md`. Use the web fetching methods from `sprue/protocols/query.md`.
+1. **Research online** — find 1-3 authoritative sources per topic. The LLM ranks source authority based on the KB identity in `instance/identity.md`. Use the web fetching methods from `.sprue/protocols/query.md`.
 2. If no good source is found, the agent can offer to write from its own knowledge — note `Source: LLM knowledge (no authoritative source found)`.
 
 **Present all discovered sources in a numbered table:**
@@ -120,7 +120,7 @@ Import which? [all / 2,3,4 / all except 1 / none]
 
 ## Phase 5: Import Approved Sources
 
-For each user-approved source, invoke the IMPORT protocol (`sprue/protocols/import.md`). IMPORT handles fetching, dedup, hashing, saving to `raw/`, and state updates. Expand never duplicates import's logic.
+For each user-approved source, invoke the IMPORT protocol (`.sprue/protocols/import.md`). IMPORT handles fetching, dedup, hashing, saving to `raw/`, and state updates. Expand never duplicates import's logic.
 
 ```
 📥 N sources imported to raw/
@@ -183,7 +183,7 @@ Auto is **stricter**, not looser — less oversight means tighter caps. See `ins
 - semi: Research all approved topics. LLM picks best `semi.sources_per_topic` per topic. No stop for sources.
 - auto: Research auto-selected topics. LLM picks best `auto.sources_per_topic` per topic. No stop.
 
-**Phase 5 (import):** All modes delegate to `sprue/protocols/import.md`. No difference.
+**Phase 5 (import):** All modes delegate to `.sprue/protocols/import.md`. No difference.
 
 **Phase 6 (state):** All modes write to `expansions.yaml`. Entry includes `mode: manual|semi|auto`.
 

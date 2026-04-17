@@ -32,27 +32,27 @@ Three layers, highest wins:
 ```
 CLI flags (per-run)          ← highest priority
   ↓
-Active profile               ← named preset in pipeline.yaml or sprue/profiles/*.yaml
+Active profile               ← named preset in pipeline.yaml or .sprue/profiles/*.yaml
   ↓
-sprue/schemas/pipeline.yaml            ← persistent defaults
+.sprue/schemas/pipeline.yaml            ← persistent defaults
   ↓
 Built-in defaults            ← hardcoded, works with no config file at all
 ```
 
 ## The Three Commands
 
-### Import (sprue/protocols/import.md)
+### Import (.sprue/protocols/import.md)
 Fast capture. Fetch → save to `raw/`. No processing.
 
-Settings in `sprue/schemas/pipeline.yaml` under `import:`:
+Settings in `.sprue/schemas/pipeline.yaml` under `import:`:
 - `timeout_seconds` — fetch timeout
 - `extract` — what to pull from web pages (full/article/code_only)
 - `crawl_depth` — follow links N levels deep
 
-### Compile (sprue/protocols/compile.md)
+### Compile (.sprue/protocols/compile.md)
 Batch transform `raw/` → `wiki/`. The intelligence layer.
 
-Settings in `sprue/schemas/pipeline.yaml` under `compile:`:
+Settings in `.sprue/schemas/pipeline.yaml` under `compile:`:
 - `strategy` — how to transform content (wiki_page, key_claims, concept_map, code_extract, flashcards, raw_summary, custom)
 - `depth` — extraction depth (shallow, standard, deep)
 - `diagrams` — generate mermaid diagrams
@@ -62,10 +62,10 @@ Settings in `sprue/schemas/pipeline.yaml` under `compile:`:
 - `verify.mode` — run verify.sh after writes
 - `approval.*` — where the pipeline pauses for human input
 
-### Expand (sprue/protocols/expand.md)
+### Expand (.sprue/protocols/expand.md)
 Discover gaps → research → import. The growth engine.
 
-Settings in `sprue/schemas/pipeline.yaml` under `expand:`:
+Settings in `.sprue/schemas/pipeline.yaml` under `expand:`:
 - `max_suggestions` — topics to propose per run
 - `max_imports` — auto-imports per run
 - `research_depth` — how thoroughly to research each topic
@@ -75,7 +75,7 @@ Settings in `sprue/schemas/pipeline.yaml` under `expand:`:
 
 | Strategy | Output | Best for |
 |---|---|---|
-| `wiki_page` | Full wiki page per sprue/engine.md contracts | Default. Most sources. |
+| `wiki_page` | Full wiki page per .sprue/engine.md contracts | Default. Most sources. |
 | `key_claims` | Numbered claims with evidence ratings | Papers, benchmarks |
 | `concept_map` | Concept → relationship graph + mermaid | Dense articles, new areas |
 | `code_extract` | Code examples with context | Tutorials, repos |
@@ -83,7 +83,7 @@ Settings in `sprue/schemas/pipeline.yaml` under `expand:`:
 | `raw_summary` | TL;DR + bullet points | Quick capture, bookmarks |
 | `custom` | Your prompt | Anything else |
 
-Each strategy has a prompt template in `sprue/prompts/<strategy>.md`. Edit to change globally.
+Each strategy has a prompt template in `.sprue/prompts/<strategy>.md`. Edit to change globally.
 
 ## Profiles
 
@@ -99,10 +99,10 @@ Profiles are named presets that override specific compile settings. Everything e
 
 ### Creating Custom Profiles
 
-Create `sprue/profiles/<name>.yaml`. Only specify what you want to override:
+Create `.sprue/profiles/<name>.yaml`. Only specify what you want to override:
 
 ```yaml
-# sprue/profiles/security-audit.yaml
+# .sprue/profiles/security-audit.yaml
 compile:
   depth: deep
   strategy: key_claims
