@@ -27,6 +27,9 @@ from collections import defaultdict
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # for lib
+from lib import SKIP_DIRS, SKIP_FILES as SKIP  # backwards compat
+
 warnings.warn(
     "verify-content.py is deprecated and will be removed in a future release. "
     "Use the LLM-driven verify protocol (.sprue/protocols/verify.md) instead. "
@@ -40,8 +43,6 @@ INDEX_DIR = WIKI / ".index"
 VERIFY_DIR = INDEX_DIR / "verification"
 SOURCES_FILE = instance_root() / "instance" / "sources.yaml"
 MANIFEST_FILE = INDEX_DIR / "manifest.yaml"
-SKIP = {"index.md", "overview.md"}
-SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 
 # Patterns for extracting verifiable claims
 CLAIM_PATTERNS = [

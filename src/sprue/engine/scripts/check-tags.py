@@ -21,6 +21,7 @@ from collections import defaultdict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
+from lib import SKIP_DIRS, SKIP_FILES as SKIP  # backwards compat
 
 # T11: Route engine/instance paths through resolvers.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
@@ -31,8 +32,6 @@ FACETS = _cfg["facets"]
 OVERRIDES = _cfg.get("overrides", {})
 
 WIKI = instance_root() / "wiki"
-SKIP = {"index.md", "overview.md"}
-SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 
 errors = []
 warnings = []
