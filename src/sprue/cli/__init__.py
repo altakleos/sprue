@@ -12,8 +12,10 @@ def main() -> None:
 
 
 from sprue.cli.init import init
+from sprue.cli.upgrade import upgrade
 
 main.add_command(init)
+main.add_command(upgrade)
 
 
 if __name__ == "__main__":
