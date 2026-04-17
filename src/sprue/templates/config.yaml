@@ -1,0 +1,6 @@
+# Sprue instance config overrides
+# Values here override .sprue/defaults.yaml via deep merge.
+# See .sprue/defaults.yaml for the full list of tunable values.
+# Leave sections empty unless you need to override a default.
+
+schema_version: 1
