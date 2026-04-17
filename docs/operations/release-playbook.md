@@ -123,6 +123,29 @@ Before tagging:
 - [ ] `python -m build && python src/sprue/engine/scripts/check-package-contents.py` passes
 - [ ] GitHub Environment `pypi` reviewers still exist and are reachable
 
+## Approving PyPI Publish from the Terminal
+
+The `pypi` GitHub Environment requires reviewer approval. The `gh` CLI
+cannot approve deployments directly, but the API can:
+
+```bash
+# Find the run ID for the release
+gh run list --workflow=release.yml --limit 3
+
+# Check pending deployment (confirms it's waiting)
+gh api repos/altakleos/sprue/actions/runs/<RUN_ID>/pending_deployments
+
+# Approve
+gh api repos/altakleos/sprue/actions/runs/<RUN_ID>/pending_deployments \
+  --method POST \
+  --field 'environment_ids[]=14249430246' \
+  --field 'state=approved' \
+  --field 'comment=Ship it'
+```
+
+The environment ID `14249430246` is stable (the `pypi` environment).
+Only the run ID changes per release.
+
 ## References
 
 - Distribution spec: [docs/specs/platform-distribution.md](../specs/platform-distribution.md)
