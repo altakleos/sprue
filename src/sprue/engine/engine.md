@@ -251,6 +251,6 @@ Bootstrap checklist — before every operation:
 | Never delete wiki pages unless human explicitly asks | Niche topics are valid. KB accumulates knowledge |
 | Never reset without explicit user confirmation | Run dry-run first, require user to type the level name |
 | Don't silently overwrite content that seems wrong | Add a conflict callout. Set `confidence: low` with `> ⚠️ **Outdated**: ...` |
-| Don't edit many pages without approval | Propose a batch plan first |
+| Don't edit many pages without approval | Compile Step 3 classification plan IS the batch plan. Once approved, execute without per-page pauses. |
 | Never create duplicate raw files for the same source URL | Check `instance/state/imports.yaml` before every write — including within a batch. In batch mode, maintain an in-memory seen-set of URLs processed so far in the current run |
 | Never inject metadata into raw files | Raw files are verbatim source content. Classification metadata (source URL, title, content_type) belongs only in `instance/state/imports.yaml` — never as YAML frontmatter or headers in the file itself |
