@@ -1,3 +1,3 @@
 """Sprue — reusable engine for LLM-operated knowledge bases."""
 
-__version__ = "0.1.4a1"
+__version__ = "0.1.5a1"
