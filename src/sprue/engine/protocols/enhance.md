@@ -12,20 +12,32 @@ Use this prompt to discover gaps, opportunities, and improvements across the ent
 Requires `.sprue/engine.md` in context (loaded via bootstrap). Then execute this multi-agent discovery process.
 
 STEP 1: GATHER WIKI STATE
-Run these commands to collect data for the agents:
+Run `python3 .sprue/scripts/build-index.py` to ensure the manifest is current.
+Then read the structured data — do NOT run raw grep/awk/sed commands:
 
-1. Directory counts per folder
-2. Top 30 most-linked pages (wikilink frequency)
-3. Pages with 0-2 outbound links (isolated nodes)
-4. All tags with frequency counts
-5. Type distribution (entity/concept/comparison/recipe)
-6. Pages exceeding max_words from instance/config.yaml (split candidates)
-7. All broken wikilinks
-8. Placement signals — run `python3 .sprue/scripts/build-index.py` first, then
-   `python3 .sprue/scripts/placement-signals.py --json > /tmp/signals.json`.
+1. Read `wiki/.index/manifest.yaml` — contains per-page metadata: slug, type,
+   facets, directory, links_to, sections, summary, confidence, decay_tier.
+2. Read `wiki/.index/by-type.yaml` — type distribution.
+3. Derive from the manifest:
+   - Inbound link counts: for each slug, count how many other pages' `links_to`
+     include it. Flag pages with 0–2 inbound links as isolated.
+   - Outbound link counts: `links_to` length per page. Flag pages with 0–2.
+   - Broken wikilinks: for each page's `links_to`, check if the target exists
+     as a manifest key. Report any that don't resolve.
+   - Pages exceeding `config.size_profiles.<profile>.max_words` (split candidates).
+   - Tag/facet frequency: aggregate facet values across all pages.
+4. Run `python3 .sprue/scripts/placement-signals.py --json > /tmp/signals.json`.
    Include the `summary` block plus the top 10 outliers, high-entropy dirs, and
    subdir proposals in the agent brief. Signals are advisory; the LLM decides
    what to act on per `.sprue/protocols/compile.md:104-113` placement judgment.
+
+Present a concise stats summary to the user (not the raw commands):
+
+```
+📊 Wiki state: N pages across M directories
+   Types: ... | Graph: N isolated, N broken links, avg N.N links/page
+   Signals: N placement outliers (details below)
+```
 
 STEP 2: SPAWN PARALLEL AGENTS
 
@@ -55,10 +67,30 @@ Group into:
 - **Medium-value new content** (pages that would be used monthly)
 - **Structural improvements** (reorganization, hub pages)
 
-Present the plan. STOP. Wait for human approval before executing anything.
+Present the plan. Apply risk-tiered execution:
+
+**Auto-apply (no approval needed):**
+- Cross-link additions (inserting `[[wikilinks]]` into existing pages)
+- Broken wikilink repairs (when the correct target slug is unambiguous)
+
+Report auto-applied changes inline:
+```
+✓ Applied 4 cross-links:
+  demystifying-feline-behavior.md → added [[cat-behaviour-myths]]
+  multi-cat-household-setup.md    → added [[introducing-a-new-cat]]
+  ...
+```
+
+**Require approval (STOP and present plan):**
+- New-page proposals
+- Content modifications (section additions, rewrites, quality fixes beyond links)
+- Structural changes (directory moves, page splits, hub pages)
+
+For items requiring approval, present the plan table and STOP.
+Accept: `all`, specific item numbers, or `none`.
 
 EXECUTION RULES:
-- After approval, execute fixes to existing pages (wikilinks, sections, quality improvements)
+- After approval, execute approved fixes to existing pages
 - For NEW pages needed: flag them — "New page needed: [topic]. Run import + compile."
 - Enhance is a quality engine, not a creation engine. It fixes what exists.
 - Update index and log after every 5 pages
