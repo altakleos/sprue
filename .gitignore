@@ -1,0 +1,12 @@
+# OS files
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Agent scratch space
+.yolo-sisyphus/

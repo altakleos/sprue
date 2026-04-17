@@ -1,0 +1,23 @@
+# Custom profile: Flashcard generation
+# Place in sprue/profiles/ to make it available as --profile flashcards
+#
+# Only specify stages you want to override. Everything else uses pipeline.yaml defaults.
+
+compile:
+  strategy: flashcards
+  depth: deep
+  diagrams: false
+  include_code: true
+
+link:
+  outbound: skip
+  inbound: skip
+
+gaps:
+  mode: skip
+
+research:
+  mode: skip
+
+verify:
+  mode: skip

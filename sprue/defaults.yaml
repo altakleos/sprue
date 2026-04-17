@@ -1,0 +1,374 @@
+# ══════════════════════════════════════════════════════════════════════════
+# Platform Defaults — v1
+# ══════════════════════════════════════════════════════════════════════════
+# Every tunable value in the KB platform, with sensible defaults.
+# Users override any subset in instance/config.yaml (deep merge, instance wins).
+#
+# schema_version tracks breaking changes to this file's structure.
+# When upgrading the platform, check the changelog for migration steps
+# if your instance/config.yaml was written against an older schema_version.
+schema_version: 1
+# This file IS the configuration reference — browse it to see what's tunable.
+#
+# Merge rules:
+#   Scalars  → instance replaces default
+#   Dicts    → recursive merge (instance keys override, unmentioned defaults survive)
+#   Lists    → instance replaces entire list (no append)
+# ══════════════════════════════════════════════════════════════════════════
+
+# ── Facets ────────────────────────────────────────────────────────────────
+# Classification dimensions. Descriptions teach the LLM how to think about
+# each facet. Users can rewrite descriptions to match their KB identity.
+facets:
+  domain:
+    description: >
+      Broad subject areas that group related content. Think library sections —
+      a small stable set that rarely grows. The LLM reads existing domains from
+      the manifest and reuses them. A new domain requires that no existing domain
+      fits AND the threshold number of pages would share it.
+      Examples: a tech KB might use 'messaging', 'databases', 'security'.
+      A cooking KB might use 'baking', 'fermentation', 'grilling'.
+    max_per_page: 3
+    creation_threshold: 10      # min pages that would share a new domain before creating it
+    hard_max: 35                # max total domains in the KB
+
+  aspect:
+    description: >
+      Cross-cutting qualities that span multiple domains. If a quality only
+      applies within one domain, it's a topic, not an aspect. Test: "Does this
+      quality apply to pages in 3+ different domains?" If yes, it's an aspect.
+      Examples: 'performance', 'cost', 'reliability' span many domains.
+      'query-optimization' is specific to databases — that's a topic.
+    max_per_page: 2
+    creation_threshold: 10
+    hard_max: 18
+
+  topic:
+    description: >
+      Specific subjects — every named entity, concept, protocol, or pattern
+      gets its own tag. Liberal vocabulary; hundreds of values are expected
+      and healthy. The LLM checks the manifest for existing values and
+      normalizes variants (plurals, hyphenation) before creating new ones.
+      Examples: 'kafka', 'sourdough', 'black-scholes', 'habeas-corpus'.
+    max_per_page: 8
+    creation_threshold: null    # liberal — no minimum page count to justify a topic
+    hard_max: null              # unbounded — topics grow freely with the wiki
+
+# ── Page Types ────────────────────────────────────────────────────────────
+# Content types classifying knowledge by form and function.
+# Descriptions teach the LLM when to assign each type.
+# Section contracts define the required H2 structure per type.
+# Users can add types, modify descriptions, or change section contracts.
+page_types:
+  concept:
+    size_profile: standard
+    description: >
+      Explains what something IS — the mental model. Reader gets understanding
+      of an idea, mechanism, or abstraction they can apply across contexts.
+      Use when the source teaches a concept or explains how something works.
+      Examples: distributed consensus (tech), maillard reaction (cooking),
+      compound interest (finance), unreliable narrator (literature).
+    sections:
+      - TL;DR
+      - Core Concepts
+      - When to Use
+      - Gotchas
+      - See Also
+
+  entity:
+    size_profile: standard
+    description: >
+      Profiles a specific named subject. Reader gets a practical orientation —
+      what it does, when to pick it, key features and limitations.
+      Use when the source is about a concrete, named thing.
+      Examples: Kafka (tech), KitchenAid mixer (cooking), S&P 500 (finance),
+      Atticus Finch (literature).
+    sections:
+      - TL;DR
+      - Attributes
+      - Why / When to Use
+      - Core Concepts
+      - Key Features
+      - Gotchas
+      - Relationships
+      - See Also
+
+  pattern:
+    size_profile: expansive
+    description: >
+      Documents a reusable solution shape for a recurring problem. Reader gets
+      a toolkit of variants and criteria for choosing between them.
+      Use when the source describes a recurring problem with multiple known approaches.
+      Examples: circuit breaker (tech), braising techniques (cooking),
+      hedging strategies (finance), plot structure models (literature).
+    sections:
+      - TL;DR
+      - The Problem
+      - Pattern Variants
+      - Selection Criteria
+      - Implementation Notes
+      - Gotchas
+      - See Also
+
+  recipe:
+    size_profile: compact
+    description: >
+      Step-by-step instructions to accomplish a specific task. Reader gets
+      a copy-paste-adapt solution they can follow immediately.
+      Use when the source is a how-to or runbook with concrete steps.
+      Examples: deploy a Kubernetes cluster (tech), sourdough bread (cooking),
+      rebalance a portfolio (finance), outline a three-act screenplay (literature).
+    sections:
+      - TL;DR
+      - Problem
+      - Solution
+      - Verification
+      - Gotchas
+
+  comparison:
+    size_profile: expansive
+    description: >
+      Side-by-side evaluation of alternatives. Reader gets a decision
+      framework with a recommendation.
+      Use when the source compares options to help the reader choose.
+      Examples: Kafka vs RabbitMQ (tech), stand mixer vs hand mixer (cooking),
+      ETF vs mutual fund (finance), first-person vs third-person POV (literature).
+    sections:
+      - TL;DR
+      - Decision Matrix
+      - "[Dimension sections]"
+      - Recommendation
+      - Gotchas
+
+  reference:
+    size_profile: compact
+    description: >
+      Compact lookup material — tables, cheat sheets, quick-reference cards.
+      Reader gets quick answers without narrative.
+      Use when the source is dense factual content best served as a scannable reference.
+      Examples: HTTP status codes (tech), measurement conversions (cooking),
+      tax brackets (finance), citation formats (literature).
+    sections:
+      - TL;DR
+      - Quick Reference
+      - Details
+      - Gotchas
+
+  decision:
+    size_profile: compact
+    description: >
+      Records a specific choice that was made, with context and reasoning.
+      Reader gets the reasoning chain — why this, what was rejected, when to revisit.
+      Use when the source captures a decision, rationale, or commitment.
+      Examples: "we chose DynamoDB over PostgreSQL" (tech), "we switched to
+      metric measurements" (cooking), "we moved to index funds" (finance).
+    sections:
+      - TL;DR
+      - Context
+      - Options Considered
+      - Decision
+      - Consequences
+      - Revisit When
+
+  opinion:
+    size_profile: compact
+    description: >
+      A reasoned position on a debatable topic. Reader gets a thesis with
+      evidence and honest counterarguments.
+      Use when the source argues a point of view or advocates for an approach.
+      Examples: "microservices are overused" (tech), "sous vide is worth it"
+      (cooking), "active management rarely beats indexing" (finance).
+    sections:
+      - TL;DR
+      - Position
+      - Evidence
+      - Counterarguments
+      - What Would Change My Mind
+
+  question:
+    size_profile: standard
+    description: >
+      An open question the KB is actively exploring. Reader gets the current
+      state of investigation and where to look next.
+      Use when the source raises more questions than answers, or research is incomplete.
+      Examples: "how should we handle multi-region consistency?" (tech),
+      "why does high-altitude baking fail?" (cooking), "is the yield curve
+      still predictive?" (finance).
+    sections:
+      - TL;DR
+      - The Question
+      - What We Know
+      - What We've Tried
+      - Open Threads
+      - See Also
+
+# ── Size Profiles ─────────────────────────────────────────────────────────
+# Control page creation, splitting, and merging thresholds.
+# Each page type maps to a profile via page_types.<type>.size_profile.
+size_profiles:
+  min_creation_words: 200       # floor for standalone page creation; also merge signal
+  standard:
+    min_words: 100              # absolute minimum for a valid page
+    max_words: 3000             # hard ceiling — must split or tighten
+    split_threshold: 1500       # soft ceiling — needs 2nd signal from granularity
+  compact:
+    min_words: 100
+    max_words: 1000             # prose only — code blocks and tables exempt
+    split_threshold: null       # never split compact types — tighten prose instead
+  expansive:
+    min_words: 100
+    max_words: 4000
+    split_threshold: 2500       # needs 2nd signal; only split when sub-section passes reusability test
+
+# ── Granularity ───────────────────────────────────────────────────────────
+# Split and merge signal thresholds. All require 2+ signals firing simultaneously.
+granularity:
+  max_h2_split_signal: 5        # H2 section count above this is a split signal
+  min_sections_with_external_links: 2  # H2 sections attracting links from other pages
+  min_section_references: 3     # [[page#section]] references triggering split signal
+  co_link_merge_ratio: 0.80     # pages linked together above this ratio are merge candidates
+  reusability_context_threshold: 2  # concept referenced from N+ unrelated contexts → standalone page
+
+# ── Entity Pages ──────────────────────────────────────────────────────────
+# Structural ranges for entity page body sections.
+entity:
+  min_attributes: 3             # minimum key-value attributes (Kind is always required)
+  max_attributes: 8             # maximum attributes — omit unknown/inapplicable ones
+  min_relationships: 2          # minimum relationship types per entity
+  max_relationships: 5          # maximum relationship types per entity
+  new_dir_adjacency_min: 3      # must name N+ future pages before creating a new directory
+
+# ── Cross-Linking ─────────────────────────────────────────────────────────
+# Wikilink density and detection thresholds.
+cross_link:
+  words_per_link: 80            # soft guideline — ~1 internal link per N words of prose
+  max_links_per_page: 25        # hard cap (excluding See Also section)
+  table_link_cell_threshold: 0.60  # don't link inside tables where >N% of cells would be links
+  alias_mention_threshold: 3    # terms appearing N+ times become auto-alias candidates
+  missing_page_mention_threshold: 3  # concepts mentioned N+ times flagged as missing pages
+
+# ── Upgrade / Quality ─────────────────────────────────────────────────────
+# Thresholds for automatic page quality improvements during maintain.
+upgrade:
+  auto_upgrade_score_threshold: 5  # pages scoring below this (0-10) get auto-upgraded
+  merge_overlap_threshold: 0.60    # pages with >N content overlap are merge candidates
+  min_wikilinks: 2              # minimum wikilinks for quality score
+  min_gotchas: 3                # minimum gotchas to add during auto-upgrade
+  max_gotchas: 5                # maximum gotchas to add during auto-upgrade
+
+# ── Decay ─────────────────────────────────────────────────────────────────
+# Content freshness model. effective_half_life = half_life_tiers[tier] × risk_multiplier[tier]
+half_life_tiers:
+  fast: 90                      # days — rapidly evolving (frameworks, APIs)
+  medium: 150                   # moderately evolving (languages, databases)
+  stable: 365                   # slow-moving (protocols, algorithms)
+  glacial: 600                  # near-permanent (math, fundamentals)
+
+risk_tier_multipliers:
+  critical: 0.5                 # halves half-life — wrong info is dangerous
+  operational: 1.0              # neutral
+  conceptual: 1.5               # extends half-life — concepts age slower
+  reference: 1.0                # neutral
+
+# ── Placement ─────────────────────────────────────────────────────────────
+# Directory organization rules.
+placement:
+  single_type_threshold: 95     # % — dirs above this are type-based (anti-pattern)
+  allowlist: []                 # dirs exempt from single_type_threshold check
+  navigable_max: 50             # dirs above this page count flag as split candidates
+  sparse_min: 3                 # dirs below this page count flag as absorb candidates
+  subdir_cluster_min: 5         # min cluster size for emergent subdirectory proposal
+  outlier_fraction_threshold: 0.7  # page flags as placement outlier at this fraction
+  outlier_neighbor_min: 3       # min neighbors before outlier detection fires
+
+# ── Maintenance ───────────────────────────────────────────────────────────
+maintenance:
+  stale_months: 6               # pages unmodified for this long are flagged stale
+  granularity_cooldown_days: 90 # skip granularity re-evaluation within this window
+
+# ── Expand ────────────────────────────────────────────────────────────────
+# Controls for gap discovery and research.
+expand:
+  max_suggestions: 15           # max topic suggestions per run
+  max_imports: 5                # max sources to import per run
+  min_shared_facets: 1          # candidates must share N+ facet values with existing content
+  research_depth: standard
+  enhance_signal_bonus: 0.10
+  semi:
+    sources_per_topic: 1
+  auto:
+    max_topics: 5
+    min_topic_score: 0.75
+    sources_per_topic: 1
+
+# ── Verify ────────────────────────────────────────────────────────────────
+# Fact-checking controls.
+verify:
+  cooldown_days: 30             # skip pages verified within this window
+  max_pages_per_run: 20
+  weights:
+    risk: 0.30
+    freshness: 0.35
+    decay: 0.15
+    impact: 0.15
+    source: 0.05
+  semi:
+    max_pages: 5
+  auto:
+    max_pages: 10
+    min_score: 50
+
+# ── Enhance ───────────────────────────────────────────────────────────────
+# Agent personas for the enhance operation.
+enhance:
+  agents:
+    - name: Graph Analyst
+      focus: >-
+        Analyze link structure. Find isolated nodes, missing hub pages,
+        disconnected clusters.
+    - name: Content Gap Analyst
+      focus: >-
+        Identify missing topics the target audience would need.
+    - name: Quality Auditor
+      focus: >-
+        Assess content quality against the audience bar.
+    - name: Creative Strategist
+      focus: >-
+        Propose novel high-value content beyond standard documentation.
+
+# ── Prompt Heuristics ─────────────────────────────────────────────────────
+# Depth-dependent output targets for compilation strategies.
+# Strategies reference these via config.prompts.<strategy>.<depth>.
+# Instance operators override to match their domain's complexity.
+prompts:
+  key_claims:
+    shallow: 5                  # max claims at shallow depth
+    standard: all_moderate       # all claims with moderate+ evidence
+    deep: all                   # every claim including weak evidence
+  concept_map:
+    shallow: 5                  # max concepts at shallow depth
+    standard: all               # all concepts with diagram + prose
+    deep: all_plus_secondary    # all concepts plus second-order relationships
+  code_extract:
+    shallow: 3                  # max examples at shallow depth
+    standard: all               # all examples with context
+    deep: all_plus_inferred     # all examples plus inferred patterns
+  flashcards:
+    shallow: 5-8                # card count range at shallow depth
+    standard: 10-15             # card count range at standard depth
+    deep: 20+                   # minimum cards at deep depth
+  raw_summary:
+    depth_override: minimal     # always minimal regardless of depth setting
+
+# ── Memory Thresholds ─────────────────────────────────────────────────────
+# Controls for the self-evolution memory system.
+# Governs how fast corrections promote to rules and when rules retire.
+memory:
+  max_rules: 30                 # maximum entries in memory/rules.yaml
+  promotion_threshold: 2        # times a structural correction repeats before auto-promoting to rule
+  retirement_passes: 3          # consecutive clean passes before retiring a factual correction
+  prune_lint_cycles: 5          # lint cycles a rule must survive before eligible for pruning
+
+# ── Editorial Overrides ───────────────────────────────────────────────────
+# Facet value normalization. Instance-specific — default is empty.
+overrides: {}

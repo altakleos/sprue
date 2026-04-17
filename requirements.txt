@@ -1,0 +1,6 @@
+# Core — all ops/*.py scripts
+pyyaml>=6.0
+
+# Semantic search — ops/build-embeddings.py, ops/semantic-search.py
+sentence-transformers>=2.2.0
+numpy>=1.20

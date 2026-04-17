@@ -1,0 +1,139 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Pipeline Configuration — sprue/schemas/pipeline.yaml
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Controls how the three commands (import, compile, expand) behave.
+# Every setting has a default that works out of the box.
+#
+# Precedence (highest wins):
+#   1. CLI flags          → "compile --profile quick --depth shallow"
+#   2. Active profile     → profiles section below (or sprue/profiles/*.yaml)
+#   3. This file          → stage-level settings
+#   4. Built-in defaults  → hardcoded in sprue/protocols/*.md (never need this file to work)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─── IMPORT settings ─────────────────────────────────────────────────────────
+import:
+  # Timeout for fetching URLs (seconds)
+  timeout_seconds: 30
+  # What to extract from web pages. Options: full | article | code_only
+  extract: article
+  # For URLs: follow links N levels deep (0 = just the URL)
+  crawl_depth: 0
+
+# ─── COMPILE settings ────────────────────────────────────────────────────────
+compile:
+  # The compilation strategy. Built-in options:
+  #   wiki_page    — full wiki page per sprue/engine.md page type contracts (default)
+  #   key_claims   — extract numbered claims with evidence strength
+  #   concept_map  — structured concept → relationship → concept map
+  #   code_extract — pull out code examples with context, skip prose
+  #   flashcards   — generate Q&A pairs for spaced repetition
+  #   raw_summary  — minimal: TL;DR + bullet points, no wiki structure
+  #   custom       — use compile.custom_prompt below
+  strategy: wiki_page
+
+  # Depth of extraction. Options: shallow | standard | deep
+  #   shallow  — TL;DR + key points only (~200-400 words)
+  #   standard — full page per type contract (~400-1200 words)
+  #   deep     — exhaustive: every claim, example, gotcha (~1000-2000 words)
+  depth: standard
+
+  # Custom compilation prompt. Only used when strategy: custom.
+  custom_prompt: null
+
+  # Whether to generate mermaid diagrams when content has flows/lifecycles
+  diagrams: true
+
+  # Whether to include code examples from the source
+  include_code: true
+
+  # Max words for compiled output (0 = no limit, use page type defaults)
+  max_words: 0
+
+  # ── Placement ──
+  place:
+    # How wiki directory is chosen. Options: auto | ask | fixed
+    mode: auto
+    directory: null  # only used when mode: fixed
+
+  # ── Tagging ──
+  tag:
+    # Options: auto | suggest | manual
+    mode: auto
+    extra_tags: []
+
+  # ── Linking ──
+  link:
+    outbound: auto   # auto | manual | skip
+    inbound: auto    # auto | skip
+    max_per_page: 0  # 0 = use cross-link.md budget rules
+
+  # ── Verification ──
+  verify:
+    mode: auto       # auto | skip
+    on_violation: fix # fix | report
+
+  # ── Approval gates ──
+  approval:
+    classify_items: auto  # auto | ask (whether ✅ Auto items need approval)
+    before_write: false   # pause before writing new pages
+    before_update: true   # pause before modifying existing pages
+
+# ─── EXPAND settings ─────────────────────────────────────────────────────────
+# Moved to instance/config.yaml under expand: section.
+# Pipeline.yaml is for compile configuration only.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Profiles — named presets that override specific compile settings.
+# A profile only specifies stages it changes — everything else falls through.
+# Activate: --profile <name>
+# Custom profiles: create sprue/profiles/<name>.yaml
+# ═══════════════════════════════════════════════════════════════════════════════
+
+profiles:
+
+  # ── Quick Capture ──
+  # Shallow summary, no linking, no verify. For bookmarking.
+  quick:
+    compile:
+      strategy: raw_summary
+      depth: shallow
+      diagrams: false
+      link: { outbound: auto, inbound: skip }
+      verify: { mode: skip }
+
+  # ── Research Mode ──
+  # Deep extraction, thorough research. For deep dives.
+  research:
+    compile:
+      depth: deep
+      diagrams: true
+    expand:
+      max_suggestions: 10
+      research_depth: thorough
+      max_imports: 10
+
+  # ── Reference Only ──
+  # Source-summary page, no auto-expand. For archiving.
+  reference:
+    compile:
+      depth: standard
+      link: { inbound: skip }
+
+  # ── Claims Extract ──
+  # Verifiable claims with evidence ratings. For papers/benchmarks.
+  claims:
+    compile:
+      strategy: key_claims
+      depth: deep
+      diagrams: false
+
+  # ── Code Harvest ──
+  # Code examples only, skip prose. For tutorials/repos.
+  code:
+    compile:
+      strategy: code_extract
+      depth: deep
+      include_code: true
+      diagrams: false
