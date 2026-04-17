@@ -1,0 +1,8 @@
+# Sprue KB gitignore
+inbox/
+*.pyc
+__pycache__/
+.DS_Store
+.sprue/scripts/__pycache__/
+wiki/.index/search.db
+wiki/.index/embeddings.jsonl
