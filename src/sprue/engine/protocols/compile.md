@@ -86,9 +86,11 @@ If there are ❓ or ⚠️ items, pause for approval. Accept: `go`, `y`, `3,5`, 
 
 ## Step 4: Execute
 
-> **Batch execution:** Once the classification plan (Step 3) is approved, execute all approved items without pausing between pages. Report progress inline (`✓ 3/10: kafka.md → wiki/messaging/kafka.md`). The Step 3 plan IS the batch approval — do not ask for per-page confirmation during execution.
->
-> **Context management:** After each page is written and state updated, release the raw file content and generated page body from working context. Carry forward only: updated facet vocabulary, directory placements, and new slugs. This prevents context degradation across large batches. For queues of 10+ sources, run `build-index.py` every 5 pages and re-read the manifest fresh.
+**⚠️ CRITICAL: Do NOT pause between pages. Do NOT say "Page N done, say go for page N+1." Do NOT ask for per-page confirmation. Execute ALL approved items in sequence, reporting progress inline. The Step 3 classification plan IS the batch approval — no further approval is needed.**
+
+Progress format: `✓ 3/10: kafka.md → wiki/messaging/kafka.md`
+
+**Context management:** After each page is written and state updated, release the raw file content and generated page body from working context. Carry forward only: updated facet vocabulary, directory placements, and new slugs. For queues of 10+ sources, run `build-index.py` every 5 pages and re-read the manifest fresh.
 
 For each approved item, in order:
 
