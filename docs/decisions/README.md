@@ -38,3 +38,4 @@ Platform decisions in chronological order. Each ADR captures the context, decisi
 | 0030 | [Rename platform/ to sprue/, Split Contributor Docs to docs/](0030-rename-platform-to-sprue-split-docs.md) | accepted |
 | 0031 | [Product Name — Sprue](0031-product-name-sprue.md) | accepted |
 | 0032 | [Fresh Repo for Sprue Platform — No History Carry-Over](0032-fresh-repo-no-history.md) | accepted |
+| 0033 | [Sprue Distribution Model — pip + Local Engine Copy](0033-sprue-distribution-model.md) | accepted |

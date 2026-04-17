@@ -13,4 +13,4 @@ For the full development model, see `docs/development-process.md`.
 | 5 | [Confidence State Machine](confidence-state-machine.md) | accepted |
 | 6 | [Agent Memory and Learning](agent-memory.md) | accepted |
 | 7 | [Plans Layer](plans-layer.md) | accepted |
-| 8 | [Sprue Distribution Model](sprue-distribution.md) | draft |
+| 8 | [Sprue Distribution Model](sprue-distribution.md) | accepted |
