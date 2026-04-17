@@ -10,18 +10,20 @@ v0.1.0 — alpha. The CLI and engine work end-to-end but the API may change befo
 
 ## Quick Start
 
-### From source (available today)
+### Install from PyPI
+
+```bash
+pip install sprue --pre
+```
+
+The `--pre` flag is needed while Sprue is in alpha. Drop it once v1.0 ships.
+
+### Install from source
 
 ```bash
 git clone https://github.com/altakleos/sprue.git
 cd sprue
 pip install -e .
-```
-
-### From PyPI (pending first release)
-
-```bash
-pip install sprue
 ```
 
 ### Create a knowledge base
