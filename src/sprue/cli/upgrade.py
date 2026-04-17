@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.resources as resources
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -47,6 +48,30 @@ def _read_schema_window(path: Path) -> tuple[int, int] | None:
     except Exception:
         pass
     return None
+
+
+def _sweep_stale_artifacts(dir_path: Path) -> None:
+    """Remove leftover .sprue.old.* and tmp* dirs from a prior interrupted run.
+
+    Addresses Momus M5: SIGKILL mid-copytree can leave dangling directories
+    that ``finally`` clauses never get to clean up. This sweep runs at the
+    start of every ``sprue upgrade`` invocation to reclaim them.
+
+    Safe: only deletes directories matching our own naming patterns:
+      - ``.sprue.old.<pid>`` from the atomic swap (pid is digits)
+      - ``tmpXXXXXXXX`` from ``tempfile.mkdtemp`` (8 chars of [a-zA-Z0-9_])
+    """
+    sprue_old = re.compile(r"^\.sprue\.old\.\d+$")
+    mkdtemp = re.compile(r"^tmp[A-Za-z0-9_]{8}$")
+    for child in dir_path.iterdir():
+        if not child.is_dir():
+            continue
+        if sprue_old.match(child.name) or mkdtemp.match(child.name):
+            try:
+                shutil.rmtree(child)
+            except OSError:
+                # Best-effort; do not fail the upgrade over sweep errors.
+                pass
 
 
 @click.command("upgrade")
@@ -97,8 +122,11 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
 
     # --- Already up to date? ---
     if old_version == new_version:
+        _sweep_stale_artifacts(dir_path)
         click.echo(f"Already up to date (version {new_version}).")
         sys.exit(0)
+
+    _sweep_stale_artifacts(dir_path)
 
     # --- Schema compatibility check ---
     # Prefer range-based (supported_schema_versions window); fall back to
