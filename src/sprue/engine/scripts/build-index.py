@@ -17,7 +17,7 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
-from lib import SKIP_DIRS, SKIP_FILES as SKIP, parse_frontmatter  # backwards compat
+from lib import SKIP_DIRS, SKIP_FILES as SKIP, parse_frontmatter, find_wiki_pages  # backwards compat
 
 # T11: Route engine/instance paths through resolvers.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
@@ -75,17 +75,6 @@ def git_updated(path):
     return None
 
 
-def find_wiki_pages():
-    """Find all wiki markdown pages, excluding special files."""
-    pages = []
-    for root, dirs, files in os.walk(WIKI):
-        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
-        for f in files:
-            if f.endswith(".md") and f not in SKIP:
-                pages.append(Path(root) / f)
-    return sorted(pages)
-
-
 def relative_dir(path):
     """Get the wiki subdirectory (e.g., 'data', 'containers')."""
     rel = path.relative_to(WIKI)
@@ -141,7 +130,7 @@ def extract_relationships(body):
 
 
 def build_manifest():
-    pages = find_wiki_pages()
+    pages = find_wiki_pages(WIKI)
     manifest = {}
     tag_index = defaultdict(list)
     type_index = defaultdict(list)
