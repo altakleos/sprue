@@ -36,6 +36,11 @@ def check_wheel(wheel_path: Path) -> list[str]:
     violations = []
     with zipfile.ZipFile(wheel_path) as wf:
         for name in wf.namelist():
+            # Split on "/" to get path segments. We match whole segments against
+            # FORBIDDEN_SEGMENTS — NOT substrings — so a file named "installer.py"
+            # or "documentation.md" is NOT flagged (segment "installer" != "instance",
+            # "documentation" != "docs"). A directory named "instance/" anywhere in
+            # the path IS flagged.
             parts = name.split("/")
             # Root-level file check
             if len(parts) == 1 and parts[0] in FORBIDDEN_ROOT_FILES:
