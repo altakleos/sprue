@@ -18,7 +18,7 @@ Usage:
 Output: wiki/.index/verification/ directory with per-page YAML reports.
 """
 
-import re, sys, os, yaml, json
+import re, sys, os, yaml, json, warnings
 from pathlib import Path
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -26,6 +26,14 @@ from collections import defaultdict
 # T11: Route engine/instance paths through resolvers.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
+
+warnings.warn(
+    "verify-content.py is deprecated and will be removed in a future release. "
+    "Use the LLM-driven verify protocol (.sprue/protocols/verify.md) instead. "
+    "See fix-protocol.md for the current claim-extraction flow.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 WIKI = instance_root() / "wiki"
 INDEX_DIR = WIKI / ".index"
