@@ -5,7 +5,7 @@ A reusable platform for building LLM-operated knowledge bases. You provide the i
 ## How It Works
 
 ```
-sprue/          ← The product (you don't edit this)
+.sprue/         ← The engine (you don't edit this)
   specs/           ← Product intent — WHAT the platform guarantees
   design/          ← Technical architecture — high-level HOW
   decisions/       ← Architecture Decision Records — WHICH choices and WHY
@@ -34,7 +34,7 @@ AGENTS.md          ← Agent bootstrap — points the LLM to the engine
 
 - **Python 3.10+** with `pyyaml` (`pip install pyyaml`)
 - **An LLM agent** with file system access (e.g., Claude, GPT-4 via an agent framework)
-- The agent must be configured to read `AGENTS.md` at the project root on startup — this file points it to `sprue/engine.md` and `instance/identity.md`, which together define how the agent operates
+- The agent must be configured to read `AGENTS.md` at the project root on startup — this file points it to `.sprue/engine.md` and `instance/identity.md`, which together define how the agent operates
 
 Optional for semantic search: `pip install sentence-transformers numpy`
 
@@ -60,7 +60,7 @@ over recipes; explain why methods work, not just how.
 
 ### 2. Customize config (optional)
 
-Create `instance/config.yaml` with only what differs from platform defaults. Browse `sprue/defaults.yaml` to see every tunable value.
+Create `instance/config.yaml` with only what differs from platform defaults. Browse `.sprue/defaults.yaml` to see every tunable value.
 
 ```yaml
 # instance/config.yaml — only what you want to change
@@ -69,7 +69,7 @@ overrides:
   machine-learning: llm
 ```
 
-The platform deep-merges your overrides on top of `sprue/defaults.yaml`:
+The platform deep-merges your overrides on top of `.sprue/defaults.yaml`:
 - Scalars → your value replaces the default
 - Dicts → recursive merge (your keys override, unmentioned defaults survive)
 - Lists → your list replaces the entire default list
@@ -91,7 +91,7 @@ Talk to the LLM agent in natural language:
 
 ## What You Can Customize
 
-Everything in `sprue/defaults.yaml` is overridable. Key sections:
+Everything in `.sprue/defaults.yaml` is overridable. Key sections:
 
 ### Facets
 
@@ -169,18 +169,18 @@ size_profiles:
 | `inbox/` | Drop zone for unsorted material (gitignored, local-only) | You |
 | `memory/` | Agent memory — learned rules, corrections, evolution logs | LLM + human |
 | `instance/` | Your identity and config overrides | You |
-| `sprue/` | The engine (don't edit) | Platform maintainer |
+| `.sprue/` | The engine (don't edit) | Platform maintainer |
 | `AGENTS.md` | Agent bootstrap — reads this on startup, follows `engine.md` | Platform maintainer |
 
 The `inbox/` directory is a convenience feature — drop files there for later triage. Contents are not version-controlled. To process an inbox item: `ingest inbox/<file>` moves it through the normal import pipeline and removes it from inbox/.
 
 ## Going Deeper
 
-- `sprue/engine.md` — Full architecture, command reference, schema, constraints
+- `.sprue/engine.md` — Full architecture, command reference, schema, constraints
 - `docs/development-process.md` — How the platform is developed (for contributors)
-- `sprue/defaults.yaml` — Browse every tunable value with comments
-- `sprue/protocols/` — Detailed procedures for each operation
+- `.sprue/defaults.yaml` — Browse every tunable value with comments
+- `.sprue/protocols/` — Detailed procedures for each operation
 
 ## CI
 
-The platform includes a GitHub Actions workflow (`verify.yml`) that runs lint and verification on push/PR. It executes `sprue/scripts/lint-rules.py` and `sprue/scripts/verify.py`.
+The platform includes a GitHub Actions workflow (`verify.yml`) that runs lint and verification on push/PR. It executes `.sprue/scripts/lint-rules.py` and `.sprue/scripts/verify.py`.
