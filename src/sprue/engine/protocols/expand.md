@@ -176,7 +176,7 @@ Auto is **stricter**, not looser — less oversight means tighter caps. See `ins
 
 **Phase 3 (topic approval):**
 - **Scoped invocation** (e.g., `expand into breed profiles`): The user's scope IS the topic selection. Select all discovered candidates that match the scope. Do NOT re-present the table for approval — the user already told you what they want. Proceed directly to Phase 4.
-- manual / semi (unscoped `expand`): STOP. Present ranked table. Wait for user selection.
+- manual / semi (unscoped `expand`): STOP. Present ranked table. Wait for user selection. If `config.expand.semi.min_topic_score` is set, hide candidates scoring below that threshold.
 - auto: LLM selects top `auto.max_topics` topics scoring ≥ `auto.min_topic_score`. No stop. Log selections.
 
 **Phase 4 (source research + presentation):**
@@ -191,6 +191,19 @@ Auto is **stricter**, not looser — less oversight means tighter caps. See `ins
 ### Post-hoc report (semi and auto)
 
 For modes that skip gates, show what the LLM chose — anomalies first:
+
+**Semi mode** — show which sources the LLM selected for each user-approved topic:
+
+```
+📥 Sources imported for 2 approved topics:
+
+ 1. choosing-a-cat     → catbehaviorassociates.com/choosing  (2025, 2800w)
+ 2. breed-comparison   → icatcare.org/breed-guide            (2024, 3100w)
+
+Queue: 2 uncompiled. Run `compile` to process.
+```
+
+**Auto mode** — show both topic selections and sources:
 
 ```
 🤖 expand --auto completed
