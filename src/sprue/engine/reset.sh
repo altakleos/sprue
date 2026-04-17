@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# sprue/reset.sh — Mechanical KB reset. Deletes content, state, and domain config by level.
-# Called by the LLM via sprue/protocols/reset.md protocol. Do not run without reading that protocol first.
+# .sprue/reset.sh — Mechanical KB reset. Deletes content, state, and domain config by level.
+# Called by the LLM via .sprue/protocols/reset.md protocol. Do not run without reading that protocol first.
 #
 # Usage:
-#   bash sprue/reset.sh --level soft|standard|hard              # dry-run (default)
-#   bash sprue/reset.sh --level soft|standard|hard --confirm    # execute
+#   bash .sprue/reset.sh --level soft|standard|hard              # dry-run (default)
+#   bash .sprue/reset.sh --level soft|standard|hard --confirm    # execute
 #
 # Levels (each is a strict superset of the previous):
 #   soft     — wiki + indexes + compile/verify state. Raw preserved. "Recompile from scratch."
@@ -24,7 +24,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$LEVEL" ]] || [[ ! "$LEVEL" =~ ^(soft|standard|hard)$ ]]; then
-  echo "Usage: bash sprue/reset.sh --level soft|standard|hard [--confirm]"
+  echo "Usage: bash .sprue/reset.sh --level soft|standard|hard [--confirm]"
   exit 1
 fi
 
@@ -90,8 +90,8 @@ fi
 
 echo ""
 echo "Will PRESERVE:"
-echo "  sprue/engine.md, protocols, scripts, prompts, pipeline"
-echo "  sprue/defaults.yaml"
+echo "  .sprue/engine.md, protocols, scripts, prompts, pipeline"
+echo "  .sprue/defaults.yaml"
 echo "  instance/config.yaml (structure + tuning parameters)"
 echo "  notebook/"
 echo "  inbox/ (user drop zone, not version-controlled)"
@@ -105,7 +105,7 @@ echo ""
 
 if [[ "$CONFIRM" != true ]]; then
   echo "DRY RUN — no changes made."
-  echo "To execute: bash sprue/reset.sh --level $LEVEL --confirm"
+  echo "To execute: bash .sprue/reset.sh --level $LEVEL --confirm"
   exit 0
 fi
 
