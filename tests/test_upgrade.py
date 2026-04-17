@@ -71,3 +71,22 @@ def test_upgrade_schema_mismatch_with_flag(tmp_instance, runner):
     (tmp_instance / ".sprue" / ".sprue-version").write_text("0.0.1")
     result = runner.invoke(main, ["upgrade", str(tmp_instance), "--accept-schema-change"])
     assert result.exit_code == 0, result.output
+
+
+def test_upgrade_sweeps_stale_artifacts(tmp_instance, runner):
+    """M5: stale .sprue.old.* and tmpXXXXXXXX dirs are cleaned on upgrade."""
+    # Simulate dangling artifacts from a SIGKILL'd prior run.
+    stale_sidelined = tmp_instance / ".sprue.old.12345"
+    stale_tempdir = tmp_instance / "tmpABCD1234"
+    legit_dir = tmp_instance / "tmp_my_notes"  # Not matching pattern — preserved.
+    for d in (stale_sidelined, stale_tempdir, legit_dir):
+        d.mkdir()
+        (d / "marker.txt").write_text("x")
+
+    # Runs sweep via the "already up to date" path.
+    result = runner.invoke(main, ["upgrade", str(tmp_instance)])
+    assert result.exit_code == 0, result.output
+
+    assert not stale_sidelined.exists()
+    assert not stale_tempdir.exists()
+    assert legit_dir.exists(), "non-matching dir should be preserved"
