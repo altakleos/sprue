@@ -4,7 +4,7 @@ from pathlib import Path
 
 # T9: Use package resolvers for engine/instance paths.
 # Fallback sys.path insert needed because scripts/ is not a package and
-# scripts are invoked standalone (e.g., python3 sprue/scripts/config.py).
+# scripts are invoked standalone (e.g., python3 .sprue/scripts/config.py).
 # T11 will migrate all invocations to go through the package.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import engine_root, instance_root

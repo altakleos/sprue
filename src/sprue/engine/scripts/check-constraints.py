@@ -14,16 +14,20 @@ Violation kinds:
   INCOMPLETE_FIX  — both wrong AND probe present (old and new coexist)
 
 Usage:
-  python3 sprue/scripts/check-constraints.py           # violations to stdout (for verify.sh)
-  python3 sprue/scripts/check-constraints.py --json    # structured records for tooling
+  python3 .sprue/scripts/check-constraints.py           # violations to stdout (for verify.sh)
+  python3 .sprue/scripts/check-constraints.py --json    # structured records for tooling
 """
 
 import re
 import sys
 from pathlib import Path
 
-CORRECTIONS_FILE = Path("memory/corrections.md")
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+CORRECTIONS_FILE = instance_root() / "memory" / "corrections.md"
+WIKI = instance_root() / "wiki"
 
 
 def parse_corrections():

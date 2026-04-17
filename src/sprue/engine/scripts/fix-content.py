@@ -5,9 +5,9 @@ Reads verification reports, fetches authoritative source content via Jina Reader
 and assembles structured context that an LLM agent uses to verify and fix claims.
 
 Usage:
-  python3 sprue/scripts/fix-content.py --page postgresql     # Single page
-  python3 sprue/scripts/fix-content.py --tier critical        # All critical pages
-  python3 sprue/scripts/fix-content.py --top 10               # Top 10 pages by claim density
+  python3 .sprue/scripts/fix-content.py --page postgresql     # Single page
+  python3 .sprue/scripts/fix-content.py --tier critical        # All critical pages
+  python3 .sprue/scripts/fix-content.py --top 10               # Top 10 pages by claim density
 
 Output: wiki/.index/fix-context/ directory with per-page context files.
 Each file contains the page content, extracted claims, and fetched source excerpts
@@ -19,13 +19,17 @@ from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+WIKI = instance_root() / "wiki"
 INDEX_DIR = WIKI / ".index"
 VERIFY_DIR = INDEX_DIR / "verification"
 FIX_DIR = INDEX_DIR / "fix-context"
-SOURCES_FILE = Path("instance/sources.yaml")
+SOURCES_FILE = instance_root() / "instance" / "sources.yaml"
 FIX_LOG = INDEX_DIR / "fix-log.jsonl"
-CORRECTIONS_FILE = Path("memory/corrections.md")
+CORRECTIONS_FILE = instance_root() / "memory" / "corrections.md"
 
 
 def fetch_url(url, search_terms=None):
@@ -137,7 +141,7 @@ def build_fix_context(slug, report, page_content, fetched_sources, corrections):
 def select_pages(filter_page=None, filter_tier=None, top_n=None):
     """Select pages to process based on filters."""
     if not VERIFY_DIR.exists():
-        print("Error: No verification reports found. Run: python3 sprue/scripts/verify-content.py")
+        print("Error: No verification reports found. Run: python3 .sprue/scripts/verify-content.py")
         sys.exit(1)
 
     reports = []
@@ -201,7 +205,7 @@ def main():
         return
 
     FIX_DIR.mkdir(parents=True, exist_ok=True)
-    manifest = yaml.safe_load(Path("wiki/.index/manifest.yaml").read_text()) or {}
+    manifest = yaml.safe_load((instance_root() / "wiki" / ".index" / "manifest.yaml").read_text()) or {}
     manifest.pop("_meta", None)
     processed = 0
 
@@ -248,7 +252,7 @@ def main():
     print(f"✅ Fix context prepared for {processed} pages")
     print(f"   Output: {FIX_DIR}/")
     print(f"\nNext step: LLM agent reads each context file and applies fixes.")
-    print(f"See sprue/protocols/fix-protocol.md for the agent workflow.")
+    print(f"See .sprue/protocols/fix-protocol.md for the agent workflow.")
 
 
 if __name__ == "__main__":

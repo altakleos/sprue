@@ -8,13 +8,17 @@ Outputs:
 Each section (H2 block) is embedded separately for precise retrieval.
 Uses all-MiniLM-L6-v2 (384 dimensions, fast, good quality).
 
-Run from repo root: python3 sprue/scripts/build-embeddings.py
+Run from instance root: python3 .sprue/scripts/build-embeddings.py
 """
 
 import json, os, re, sqlite3, struct, sys
 from pathlib import Path
 
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+WIKI = instance_root() / "wiki"
 INDEX_DIR = WIKI / ".index"
 SKIP_FILES = {"index.md", "overview.md"}
 SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}

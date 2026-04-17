@@ -7,11 +7,15 @@ Checks:
      (detected by frontmatter containing 'source:' or 'title:' keys
       that match imports.yaml metadata patterns)
 
-Usage: python3 sprue/scripts/validate-raw.py
+Usage: python3 .sprue/scripts/validate-raw.py
 Exit code: 0 = clean, 1 = violations found
 """
 import sys, re
 from pathlib import Path
+
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
 
 try:
     import yaml
@@ -19,11 +23,10 @@ except ImportError:
     print("⚠️  PyYAML not installed — skipping imports.yaml dedup check")
     yaml = None
 
-ROOT = Path(__file__).resolve().parent.parent.parent
 errors = []
 
 # --- Check 1: duplicate source URLs in imports.yaml ---
-imports_path = ROOT / "ops" / "state" / "imports.yaml"
+imports_path = instance_root() / "instance" / "state" / "imports.yaml"
 if yaml and imports_path.exists():
     try:
         entries = yaml.safe_load(imports_path.read_text()) or []
@@ -46,13 +49,14 @@ if yaml and imports_path.exists():
 
 # --- Check 2: agent-injected frontmatter in raw .md files ---
 FM_RE = re.compile(r"^---\s*\n(.*?)\n---", re.DOTALL)
-for md in sorted((ROOT / "raw").rglob("*.md")):
+RAW_DIR = instance_root() / "raw"
+for md in sorted(RAW_DIR.rglob("*.md")) if RAW_DIR.exists() else []:
     text = md.read_text(errors="replace")
     m = FM_RE.match(text)
     if m:
         fm_block = m.group(1)
         if re.search(r"^(source|title|content_type):", fm_block, re.MULTILINE):
-            errors.append(f"agent-injected frontmatter: {md.relative_to(ROOT)}")
+            errors.append(f"agent-injected frontmatter: {md.relative_to(instance_root())}")
 
 # --- Report ---
 if errors:

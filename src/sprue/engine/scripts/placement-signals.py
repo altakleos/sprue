@@ -22,8 +22,8 @@ Output: human-readable tables by default; --json for LLM consumption (mirrors
 the prioritize.py convention).
 
 Usage:
-  python3 sprue/scripts/placement-signals.py          # human report
-  python3 sprue/scripts/placement-signals.py --json   # machine-readable
+  python3 .sprue/scripts/placement-signals.py          # human report
+  python3 .sprue/scripts/placement-signals.py --json   # machine-readable
 
 Exit: 0 always.
 """
@@ -39,9 +39,13 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent.parent
-WIKI = ROOT / "wiki"
-MANIFEST = ROOT / "wiki" / ".index" / "manifest.yaml"
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+ROOT = instance_root()
+WIKI = instance_root() / "wiki"
+MANIFEST = instance_root() / "wiki" / ".index" / "manifest.yaml"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
@@ -82,7 +86,7 @@ def check_manifest_freshness() -> str | None:
     written *after* manifest.yaml in the same run and would always appear newer.
     """
     if not MANIFEST.exists():
-        return f"manifest not found at {MANIFEST} — run sprue/scripts/build-index.py"
+        return f"manifest not found at {MANIFEST} — run .sprue/scripts/build-index.py"
     m_mtime = MANIFEST.stat().st_mtime
     for p in WIKI.rglob("*.md"):
         rel = p.relative_to(WIKI).as_posix()
@@ -90,7 +94,7 @@ def check_manifest_freshness() -> str | None:
             continue
         if p.stat().st_mtime > m_mtime:
             return (f"manifest.yaml is older than at least one wiki page ({p.relative_to(ROOT)}). "
-                    "Run sprue/scripts/build-index.py before interpreting signals.")
+                    "Run .sprue/scripts/build-index.py before interpreting signals.")
     return None
 
 
