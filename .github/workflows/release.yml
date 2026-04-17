@@ -1,0 +1,88 @@
+# Release workflow — publishes Sprue to PyPI on tag push.
+#
+# PREREQUISITES (configure ONCE, before first release):
+#   1. Create project on pypi.org (or test.pypi.org for dry runs)
+#   2. Configure Trusted Publisher: Publishing → Trusted Publishers → Add
+#      • Repo owner: <your-github-org>
+#      • Repo name: sprue
+#      • Workflow: release.yml
+#      • Environment name: pypi (optional but recommended)
+#   3. (Optional) Create a 'pypi' GitHub Environment with required reviewers
+#
+# To release:
+#   git tag v0.1.0
+#   git push origin v0.1.0
+#
+# No PyPI tokens or secrets are needed — OIDC handles authentication.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  verify:
+    # Gate: full verification must pass before publishing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install package and build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . build
+
+      - name: CLI smoke test
+        run: sprue --version
+
+      - name: Scaffold test instance
+        run: sprue init /tmp/test-kb --identity 'Release gate.'
+
+      - name: Verify scaffolded instance
+        working-directory: /tmp/test-kb
+        run: sprue verify
+
+      - name: Run check-config
+        run: python src/sprue/engine/scripts/check-config.py
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Check package contents
+        run: python src/sprue/engine/scripts/check-package-contents.py
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: pypi  # Optional — remove if you don't use environment-level review gates
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Validate distributions
+        run: pipx run twine check dist/*
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
