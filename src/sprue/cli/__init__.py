@@ -11,5 +11,10 @@ def main() -> None:
     """Sprue — build and operate LLM-readable knowledge bases."""
 
 
+from sprue.cli.init import init
+
+main.add_command(init)
+
+
 if __name__ == "__main__":
     main()
