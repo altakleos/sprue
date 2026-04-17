@@ -304,6 +304,7 @@ expand:
   enhance_signal_bonus: 0.10
   semi:
     sources_per_topic: 1
+    min_topic_score:                # null = show all candidates (user is the filter)
   auto:
     max_topics: 5
     min_topic_score: 0.75
