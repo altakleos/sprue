@@ -67,13 +67,11 @@ Group into:
 - **Medium-value new content** (pages that would be used monthly)
 - **Structural improvements** (reorganization, hub pages)
 
-Present the plan. Apply risk-tiered execution:
+Present the plan. Apply risk-tiered execution per `config.approval.*`:
 
-**Auto-apply (no approval needed):**
-- Cross-link additions (inserting `[[wikilinks]]` into existing pages)
-- Broken wikilink repairs (when the correct target slug is unambiguous)
-
-Report auto-applied changes inline:
+**When `config.approval.cross_links` is `auto` (default):**
+Apply cross-link additions directly. Do NOT present them for approval.
+Do NOT ask "approve?". Write the wikilinks, then report what changed:
 ```
 ✓ Applied 4 cross-links:
   demystifying-feline-behavior.md → added [[cat-behaviour-myths]]
@@ -81,10 +79,16 @@ Report auto-applied changes inline:
   ...
 ```
 
-**Require approval (STOP and present plan):**
-- New-page proposals
-- Content modifications (section additions, rewrites, quality fixes beyond links)
-- Structural changes (directory moves, page splits, hub pages)
+**When `config.approval.cross_links` is `ask`:**
+Present cross-link additions in the plan table. Wait for approval.
+Accept: `all`, specific item numbers, or `none`.
+
+Same pattern for `config.approval.broken_link_fixes`.
+
+**Always require approval (regardless of config):**
+- New-page proposals (`config.approval.new_pages`)
+- Content modifications (`config.approval.content_changes`)
+- Structural changes (`config.approval.structural_changes`)
 
 For items requiring approval, present the plan table and STOP.
 Accept: `all`, specific item numbers, or `none`.
