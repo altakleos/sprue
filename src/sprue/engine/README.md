@@ -174,6 +174,86 @@ size_profiles:
 
 The `inbox/` directory is a convenience feature — drop files there for later triage. Contents are not version-controlled. To process an inbox item: `ingest inbox/<file>` moves it through the normal import pipeline and removes it from inbox/.
 
+## Day-2 Operations
+
+After `sprue init`, your KB is empty. Day-2 is the loop you run as you
+add content and keep it healthy.
+
+### Ingesting a source
+
+Tell your LLM agent to read `AGENTS.md`, then point it at something:
+
+```
+ingest https://example.com/some-article
+```
+
+The agent follows the `import` protocol (saves to `raw/`) then the
+`compile` protocol (produces a structured page in `wiki/`). See
+`.sprue/protocols/import.md` and `.sprue/protocols/compile.md` for the
+step-by-step prose the agent executes.
+
+### Querying the KB
+
+```
+query "what does this KB say about X?"
+```
+
+The agent follows `.sprue/protocols/query.md` — reads relevant wiki pages
+and answers using the KB's voice (per `instance/identity.md`), not its
+training data.
+
+### Maintenance
+
+Run periodically to catch drift:
+
+```
+maintain
+```
+
+This executes `.sprue/protocols/maintain.md`: lint, verify, fix obvious
+issues, rebuild indexes. Safe to run often.
+
+### Verification
+
+```
+sprue verify
+```
+
+Runs the validator rules registered in `memory/rules.yaml`. A fresh
+instance has no rules; add them as you learn what's worth enforcing
+(see Optional Validators below).
+
+### Reset
+
+When you need to start over:
+
+```bash
+bash .sprue/reset.sh --level soft|standard|hard              # dry-run
+bash .sprue/reset.sh --level soft|standard|hard --confirm    # execute
+```
+
+`soft` — wipe wiki + indexes, keep raw. `standard` — + wipe raw and
+memory. `hard` — + wipe identity and config overrides. All levels
+require a clean git tree.
+
+### Upgrading the engine
+
+```bash
+pip install sprue --pre --upgrade
+sprue upgrade
+```
+
+Replaces `.sprue/` atomically. Your wiki, raw, memory, and state are
+never touched. If schema version changed, you'll see a migration prompt
+— re-run with `--accept-schema-change` after reviewing.
+
+### Committing to git
+
+Everything except `inbox/` is meant for version control, including
+`.sprue/` — engine files in a user instance are plain text and
+committing them pins your KB to a specific engine version for
+reproducibility.
+
 ## Optional Validators
 
 The engine ships validators your instance can enable by registering them
