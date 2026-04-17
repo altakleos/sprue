@@ -2,7 +2,7 @@
 feature: shared-utils-refactor
 serves: docs/specs/platform-reusability.md
 design:
-status: planned
+status: done
 date: 2026-04-17
 ---
 # Plan: Shared Utilities Refactor (`lib.py`)
