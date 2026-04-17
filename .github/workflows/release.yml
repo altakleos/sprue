@@ -19,7 +19,12 @@ name: Release
 
 on:
   push:
-    tags: ["v*.*.*"]
+    # Match semver tags including prereleases:
+    # v0.1.0, v1.2.3, v0.1.0-alpha, v0.1.0-rc.1, v0.1.0a1, v0.1.0b2
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+      - "v[0-9]+.[0-9]+.[0-9]+[a-z]*[0-9]*"
 
 env:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
