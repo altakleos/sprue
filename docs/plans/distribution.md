@@ -2,7 +2,7 @@
 feature: distribution
 serves: docs/specs/platform-distribution.md
 design: docs/design/sprue-distribution.md
-status: in-progress
+status: done
 date: 2026-04-16
 ---
 # Plan: Sprue Distribution Model
