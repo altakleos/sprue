@@ -32,3 +32,4 @@ The three-tier configuration model prevents the common failure mode where platfo
 
 - [Three-Command Pipeline](../design/three-command-pipeline.md) — pipeline boundary ownership enables reusability
 - [Prose-as-Code Execution Model](../design/prose-as-code.md) — domain-agnostic execution model
+- [Sprue Distribution Model](../design/sprue-distribution.md) — domain-agnostic engine packaging and identity-driven init
