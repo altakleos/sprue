@@ -376,6 +376,18 @@ memory:
   retirement_passes: 3          # consecutive clean passes before retiring a factual correction
   prune_lint_cycles: 5          # lint cycles a rule must survive before eligible for pruning
 
+# ── Approval Gates ────────────────────────────────────────────────────────
+# Controls when protocols pause for human confirmation vs auto-apply.
+# Options per key: auto (apply and report) | ask (present plan, wait)
+# These govern enhance, maintain, and inline cross-link operations.
+# Compile-phase approval lives separately in pipeline.yaml.
+approval:
+  cross_links: auto             # wikilink insertions into existing pages
+  broken_link_fixes: auto       # unambiguous broken-link repairs
+  content_changes: ask          # section additions, rewrites, quality fixes
+  structural_changes: ask       # directory moves, page splits, hub pages
+  new_pages: ask                # new-page proposals (enhance → expand handoff)
+
 # ── Editorial Overrides ───────────────────────────────────────────────────
 # Facet value normalization. Instance-specific — default is empty.
 overrides: {}
