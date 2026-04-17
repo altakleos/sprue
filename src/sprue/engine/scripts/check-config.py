@@ -6,9 +6,9 @@ read wiki content — see check-frontmatter.py / check-tags.py / check-entity-ty
 for page-level checks.
 
 Checks:
-  1. sprue/defaults.yaml exists and is valid YAML. (error)
+  1. .sprue/defaults.yaml exists and is valid YAML. (error)
   2. Every top-level key in instance/config.yaml exists in
-     sprue/defaults.yaml (catches typos). (error)
+     .sprue/defaults.yaml (catches typos). (error)
   3. Merged config has all required top-level sections. (error)
   4. page_types entries each have 'sections' and 'size_profile'. (error)
   5. facets entries each have 'description' and 'max_per_page'. (error)
@@ -18,16 +18,16 @@ Checks:
   9. entity-types.yaml:relationship_types has unique `display` names; every entry
      has both `display` and `description`. (error)
  10. Every compile strategy in pipeline.yaml (top-level + each profile) is either
-     a built-in (wiki_page) or has a matching sprue/prompts/<strategy>.md file. (error)
+     a built-in (wiki_page) or has a matching .sprue/prompts/<strategy>.md file. (error)
  11. config.yaml's decay_tier and risk_tier enums match the canonical sets
-     documented in sprue/engine.md Frontmatter Schema. (warning)
+     documented in .sprue/engine.md Frontmatter Schema. (warning)
  12. entity-types.yaml topic slugs follow the project's slug convention
      (lowercase, dash-separated, no spaces). (warning)
 
 Usage:
-  python3 sprue/scripts/check-config.py           # full report
-  python3 sprue/scripts/check-config.py --quiet   # errors only (for verify.sh)
-  python3 sprue/scripts/check-config.py --json    # structured records (for tooling)
+  python3 .sprue/scripts/check-config.py           # full report
+  python3 .sprue/scripts/check-config.py --quiet   # errors only (for verify.sh)
+  python3 .sprue/scripts/check-config.py --json    # structured records (for tooling)
 
 Exit: 0 if no errors (warnings allowed); 1 if any error.
 """
@@ -37,25 +37,29 @@ import re
 import sys
 from pathlib import Path
 
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import engine_root, instance_root
+
 import yaml
 
 from config import load as load_config
 
-OPS = Path("sprue")
+OPS = engine_root()
 PROMPTS = OPS / "prompts"
 
 DEFAULTS_YAML = OPS / "defaults.yaml"
-CONFIG_YAML = Path("instance") / "config.yaml"
-ENTITY_TYPES_YAML = Path("instance") / "entity-types.yaml"
+CONFIG_YAML = instance_root() / "instance" / "config.yaml"
+ENTITY_TYPES_YAML = instance_root() / "instance" / "entity-types.yaml"
 PIPELINE_YAML = OPS / "schemas" / "pipeline.yaml"
 
-# Canonical enums per sprue/engine.md Frontmatter Schema (lines 96-117).
+# Canonical enums per .sprue/engine.md Frontmatter Schema (lines 96-117).
 # Update this set in lockstep with engine.md if the schema ever changes.
 CANONICAL_DECAY_TIERS = {"fast", "medium", "stable", "glacial"}
 CANONICAL_RISK_TIERS = {"critical", "operational", "conceptual", "reference"}
 
 # Built-in compile strategies that don't require an explicit prompt file
-# (delegate to sprue/engine.md contracts).
+# (delegate to .sprue/engine.md contracts).
 BUILTIN_STRATEGIES = {"wiki_page"}
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]*$")
@@ -210,7 +214,7 @@ def check_relationship_types(entity_types_doc):
 
 
 def known_strategies():
-    """Built-in strategies plus any matching sprue/prompts/<name>.md (excluding verify-*)."""
+    """Built-in strategies plus any matching .sprue/prompts/<name>.md (excluding verify-*)."""
     strategies = set(BUILTIN_STRATEGIES)
     if PROMPTS.is_dir():
         for p in PROMPTS.glob("*.md"):
@@ -324,7 +328,7 @@ REQUIRED_SECTIONS = {
 
 
 def check_defaults_valid():
-    """Check 1: sprue/defaults.yaml exists and is valid YAML."""
+    """Check 1: .sprue/defaults.yaml exists and is valid YAML."""
     errors = []
     if not DEFAULTS_YAML.exists():
         errors.append(

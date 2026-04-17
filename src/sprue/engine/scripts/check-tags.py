@@ -22,11 +22,15 @@ from collections import defaultdict
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
 
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
 _cfg = load_config()
 FACETS = _cfg["facets"]
 OVERRIDES = _cfg.get("overrides", {})
 
-WIKI = Path("wiki")
+WIKI = instance_root() / "wiki"
 SKIP = {"index.md", "overview.md"}
 SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 

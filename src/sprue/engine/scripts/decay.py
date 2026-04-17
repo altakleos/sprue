@@ -11,8 +11,8 @@ Fixes over the previous exponential model:
 Half-lives and risk_tier multipliers live in instance/config.yaml.
 
 Usage:
-  python3 sprue/scripts/decay.py              # Report only
-  python3 sprue/scripts/decay.py --apply      # Apply downgrades to files
+  python3 .sprue/scripts/decay.py              # Report only
+  python3 .sprue/scripts/decay.py --apply      # Apply downgrades to files
 """
 
 import re, sys, math, hashlib, yaml
@@ -22,7 +22,11 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
 
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+WIKI = instance_root() / "wiki"
 MANIFEST = WIKI / ".index" / "manifest.yaml"
 DEFAULT_HALF_LIFE = 365
 
@@ -90,7 +94,7 @@ def main():
     now = datetime.now()
 
     if not MANIFEST.exists():
-        print("Error: manifest.yaml not found. Run: python3 sprue/scripts/build-index.py"); sys.exit(1)
+        print("Error: manifest.yaml not found. Run: python3 .sprue/scripts/build-index.py"); sys.exit(1)
 
     half_lives, multipliers = load_facets()
     manifest = yaml.safe_load(MANIFEST.read_text()) or {}

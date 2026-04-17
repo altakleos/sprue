@@ -5,15 +5,15 @@ DEPRECATED: This script uses regex-based claim extraction which is noisy
 (catches YAML boilerplate, example port numbers) and misses semantic claims
 (security assertions, architectural recommendations, performance numbers).
 
-Replaced by: sprue/protocols/verify.md + sprue/scripts/prioritize.py
+Replaced by: .sprue/protocols/verify.md + .sprue/scripts/prioritize.py
 The LLM now performs claim extraction directly during the standalone verify
 operation. This script is retained for backward compatibility.
 
 Usage:
-  python3 sprue/scripts/verify-content.py                    # Report all pages by risk tier
-  python3 sprue/scripts/verify-content.py --page kafka       # Single page
-  python3 sprue/scripts/verify-content.py --tier critical     # All critical pages
-  python3 sprue/scripts/verify-content.py --stale 90          # Pages not verified in 90+ days
+  python3 .sprue/scripts/verify-content.py                    # Report all pages by risk tier
+  python3 .sprue/scripts/verify-content.py --page kafka       # Single page
+  python3 .sprue/scripts/verify-content.py --tier critical     # All critical pages
+  python3 .sprue/scripts/verify-content.py --stale 90          # Pages not verified in 90+ days
 
 Output: wiki/.index/verification/ directory with per-page YAML reports.
 """
@@ -23,10 +23,14 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+WIKI = instance_root() / "wiki"
 INDEX_DIR = WIKI / ".index"
 VERIFY_DIR = INDEX_DIR / "verification"
-SOURCES_FILE = Path("instance/sources.yaml")
+SOURCES_FILE = instance_root() / "instance" / "sources.yaml"
 MANIFEST_FILE = INDEX_DIR / "manifest.yaml"
 SKIP = {"index.md", "overview.md"}
 SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
@@ -126,7 +130,7 @@ def find_sources_for_page(techs, slug):
 def find_pages(filter_page=None, filter_tier=None, stale_days=None):
     """Find wiki pages to verify, filtered by criteria."""
     if not MANIFEST_FILE.exists():
-        print("Error: manifest.yaml not found. Run: python3 sprue/scripts/build-index.py")
+        print("Error: manifest.yaml not found. Run: python3 .sprue/scripts/build-index.py")
         sys.exit(1)
 
     manifest = yaml.safe_load(MANIFEST_FILE.read_text()) or {}

@@ -5,7 +5,7 @@ The filesystem is pure navigation; classification is pure data. A directory
 whose pages are >= N% a single type is a type-based folder in disguise (the
 anti-pattern the Phase 1 directory migration was meant to eliminate). This
 guard fires whenever that pattern emerges so the LLM re-places pages by
-domain judgment per sprue/protocols/compile.md step 7.
+domain judgment per .sprue/protocols/compile.md step 7.
 
 Threshold + allowlist live in instance/config.yaml under `placement:`.
 Platform-agnostic — no directory names are hardcoded here.
@@ -19,8 +19,12 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent.parent
-WIKI = ROOT / "wiki"
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+ROOT = instance_root()
+WIKI = instance_root() / "wiki"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config

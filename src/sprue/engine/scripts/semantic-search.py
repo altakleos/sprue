@@ -2,19 +2,23 @@
 """Semantic search over wiki sections using pre-computed embeddings.
 
 Usage:
-  python3 sprue/scripts/semantic-search.py "your query here" [--top N] [--threshold FLOAT]
+  python3 .sprue/scripts/semantic-search.py "your query here" [--top N] [--threshold FLOAT]
 
 Examples:
-  python3 sprue/scripts/semantic-search.py "how to handle database connection pooling in Java Spring"
-  python3 sprue/scripts/semantic-search.py "exactly once delivery kafka" --top 5
-  python3 sprue/scripts/semantic-search.py "kubernetes pod won't start" --top 10 --threshold 0.3
+  python3 .sprue/scripts/semantic-search.py "how to handle database connection pooling in Java Spring"
+  python3 .sprue/scripts/semantic-search.py "exactly once delivery kafka" --top 5
+  python3 .sprue/scripts/semantic-search.py "kubernetes pod won't start" --top 10 --threshold 0.3
 """
 
 import json, struct, sys, argparse
 import numpy as np
 from pathlib import Path
 
-INDEX_DIR = Path("wiki/.index")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+INDEX_DIR = instance_root() / "wiki" / ".index"
 DB_PATH = INDEX_DIR / "search.db"
 JSONL_PATH = INDEX_DIR / "embeddings.jsonl"
 EMBEDDING_DIM = 384
@@ -89,7 +93,7 @@ def main():
     elif JSONL_PATH.exists():
         results = search_jsonl(query_emb, args.top, args.threshold)
     else:
-        print("Error: No embedding index found. Run sprue/scripts/build-embeddings.py first.", file=sys.stderr)
+        print("Error: No embedding index found. Run .sprue/scripts/build-embeddings.py first.", file=sys.stderr)
         sys.exit(1)
 
     if args.json:

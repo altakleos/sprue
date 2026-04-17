@@ -5,8 +5,8 @@ Does NOT execute rules; only validates shape. Invoked by verify.sh via a
 self-referential rule so invalid rule edits surface before they would run.
 
 Usage:
-  python3 sprue/scripts/lint-rules.py
-  python3 sprue/scripts/lint-rules.py --quiet   # errors only (if invoked from verify.sh)
+  python3 .sprue/scripts/lint-rules.py
+  python3 .sprue/scripts/lint-rules.py --quiet   # errors only (if invoked from verify.sh)
 
 Exit: 0 on clean, 1 on any schema violation.
 """
@@ -16,7 +16,11 @@ from pathlib import Path
 
 import yaml
 
-RULES_FILE = Path("memory/rules.yaml")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+RULES_FILE = instance_root() / "memory" / "rules.yaml"
 VALID_SCOPES_LITERAL = {"page", "whole"}
 
 

@@ -7,13 +7,17 @@ Checks:
 3. Bare language markers outside code blocks (missing ``` prefix)
 4. Bare language markers inside code blocks (broken closing fence)
 
-Run: python3 sprue/scripts/check-fences.py
+Run: python3 .sprue/scripts/check-fences.py
 """
 
 import os, re, sys
 from pathlib import Path
 
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+WIKI = instance_root() / "wiki"
 SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 
 LANGUAGES = {

@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Detect broken wikilinks — links to pages that don't exist.
 
-Run: python3 sprue/scripts/check-wikilinks.py
+Run: python3 .sprue/scripts/check-wikilinks.py
 Exit 0 = no broken links, exit 1 = broken links found.
 """
 
 import os, re, sys
 from pathlib import Path
 
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+WIKI = instance_root() / "wiki"
 SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 
 def find_pages():

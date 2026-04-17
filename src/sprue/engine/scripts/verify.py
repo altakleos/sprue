@@ -10,10 +10,10 @@ block using frontmatter — the rule DSL never reads filesystem paths
 as a semantic claim.
 
 Invocation compatible with the previous verify.sh:
-  python3 sprue/scripts/verify.py                    # full-wiki sweep
-  python3 sprue/scripts/verify.py --file <path>      # single-file mode
-  python3 sprue/scripts/verify.py --json             # machine-readable report
-  python3 sprue/scripts/verify.py --jobs 4           # parallel execution
+  python3 .sprue/scripts/verify.py                    # full-wiki sweep
+  python3 .sprue/scripts/verify.py --file <path>      # single-file mode
+  python3 .sprue/scripts/verify.py --json             # machine-readable report
+  python3 .sprue/scripts/verify.py --jobs 4           # parallel execution
 
 Exit: 0 if no rule failed, 1 otherwise.
 """
@@ -32,9 +32,13 @@ from typing import Optional
 
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent.parent
-RULES_FILE = ROOT / "memory" / "rules.yaml"
-WIKI = ROOT / "wiki"
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+ROOT = instance_root()
+RULES_FILE = instance_root() / "memory" / "rules.yaml"
+WIKI = instance_root() / "wiki"
 SKIP_DIRS = {".index", ".obsidian", "domains"}
 SKIP_FILES = {"overview.md"}
 RULE_TIMEOUT_SEC = 120
@@ -70,7 +74,7 @@ def parse_rules(path: Path) -> list[Rule]:
     except yaml.YAMLError as e:
         print(f"❌ {path} is not valid YAML — cannot run any rule.", file=sys.stderr)
         print(f"   {e}", file=sys.stderr)
-        print("   Lint with: python3 sprue/scripts/lint-rules.py", file=sys.stderr)
+        print("   Lint with: python3 .sprue/scripts/lint-rules.py", file=sys.stderr)
         sys.exit(1)
     if not isinstance(doc, list):
         return []

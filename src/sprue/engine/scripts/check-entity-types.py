@@ -8,18 +8,22 @@ Checks:
   4. Wikilink targets in ## Relationships resolve to actual pages
 
 Usage:
-  python3 sprue/scripts/check-entity-types.py           # Full validation
-  python3 sprue/scripts/check-entity-types.py --quiet   # Errors only (for verify.sh)
-  python3 sprue/scripts/check-entity-types.py --json    # Structured records (for resolve-relationships)
+  python3 .sprue/scripts/check-entity-types.py           # Full validation
+  python3 .sprue/scripts/check-entity-types.py --quiet   # Errors only (for verify.sh)
+  python3 .sprue/scripts/check-entity-types.py --json    # Structured records (for resolve-relationships)
 """
 
 import sys, re, yaml
 from pathlib import Path
 from collections import defaultdict
 
-MANIFEST = Path("wiki/.index/manifest.yaml")
-ENTITY_TYPES_PATH = Path("instance/entity-types.yaml")
-WIKI = Path("wiki")
+# T11: Route engine/instance paths through resolvers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
+from sprue.engine_root import instance_root
+
+MANIFEST = instance_root() / "wiki" / ".index" / "manifest.yaml"
+ENTITY_TYPES_PATH = instance_root() / "instance" / "entity-types.yaml"
+WIKI = instance_root() / "wiki"
 
 SKIP_DIRS = {".obsidian", ".index", "domains", "sources"}
 
@@ -32,7 +36,7 @@ def main():
     records = []
 
     if not MANIFEST.exists():
-        print("Error: manifest.yaml not found. Run: python3 sprue/scripts/build-index.py")
+        print("Error: manifest.yaml not found. Run: python3 .sprue/scripts/build-index.py")
         sys.exit(1)
 
     if not ENTITY_TYPES_PATH.exists():
