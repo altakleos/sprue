@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# Pipeline Configuration — sprue/schemas/pipeline.yaml
+# Pipeline Configuration — .sprue/schemas/pipeline.yaml
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # Controls how the three commands (import, compile, expand) behave.
@@ -7,9 +7,9 @@
 #
 # Precedence (highest wins):
 #   1. CLI flags          → "compile --profile quick --depth shallow"
-#   2. Active profile     → profiles section below (or sprue/profiles/*.yaml)
+#   2. Active profile     → profiles section below (or .sprue/profiles/*.yaml)
 #   3. This file          → stage-level settings
-#   4. Built-in defaults  → hardcoded in sprue/protocols/*.md (never need this file to work)
+#   4. Built-in defaults  → hardcoded in .sprue/protocols/*.md (never need this file to work)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ─── IMPORT settings ─────────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ import:
 # ─── COMPILE settings ────────────────────────────────────────────────────────
 compile:
   # The compilation strategy. Built-in options:
-  #   wiki_page    — full wiki page per sprue/engine.md page type contracts (default)
+  #   wiki_page    — full wiki page per .sprue/engine.md page type contracts (default)
   #   key_claims   — extract numbered claims with evidence strength
   #   concept_map  — structured concept → relationship → concept map
   #   code_extract — pull out code examples with context, skip prose
@@ -88,7 +88,7 @@ compile:
 # Profiles — named presets that override specific compile settings.
 # A profile only specifies stages it changes — everything else falls through.
 # Activate: --profile <name>
-# Custom profiles: create sprue/profiles/<name>.yaml
+# Custom profiles: create .sprue/profiles/<name>.yaml
 # ═══════════════════════════════════════════════════════════════════════════════
 
 profiles:

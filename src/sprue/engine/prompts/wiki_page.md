@@ -1,14 +1,14 @@
 # Strategy: wiki_page
 # Default compilation strategy. Produces a full wiki page following the
-# page type contract from sprue/defaults.yaml → page_types:.
+# page type contract from .sprue/defaults.yaml → page_types:.
 
 Transform the source into a wiki page for the audience described in `instance/identity.md`.
 
 ## Instructions
 
-1. **Pick the page type** from `sprue/defaults.yaml` → `page_types:` that best fits the source content. Read the `description` field to decide — it explains what each type is for.
+1. **Pick the page type** from `.sprue/defaults.yaml` → `page_types:` that best fits the source content. Read the `description` field to decide — it explains what each type is for.
 2. **Follow the section contract** for that type exactly. Every listed section must appear. Do not add extra top-level sections.
-3. **Assign frontmatter** per `sprue/engine.md` schema:
+3. **Assign frontmatter** per `.sprue/engine.md` schema:
    - `confidence: medium` (default) or `low` (speculative/opinion). **Never `high`** — reserved for verify.
    - `author: llm`, `last_verified: null`, `provenance: sourced`.
    - Facets from {{facets}}.
@@ -29,7 +29,7 @@ Word targets come from the page type's `size_profile` in `instance/config.yaml` 
 
 ```markdown
 ---
-type: <from sprue/defaults.yaml → page_types:>
+type: <from .sprue/defaults.yaml → page_types:>
 domain: [<values>]
 topic: [<values>]
 aspect: [<values>]
