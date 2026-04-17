@@ -8,6 +8,13 @@
 # When upgrading the platform, check the changelog for migration steps
 # if your instance/config.yaml was written against an older schema_version.
 schema_version: 1
+# The range of schema versions this engine can operate. Instances must
+# declare a `schema_version` within [min, max] inclusive. When an upgrade
+# would move an instance outside this range, `sprue upgrade` requires
+# explicit --accept-schema-change acknowledgment.
+supported_schema_versions:
+  min: 1
+  max: 1
 # This file IS the configuration reference — browse it to see what's tunable.
 #
 # Merge rules:
