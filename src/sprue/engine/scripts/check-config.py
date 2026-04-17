@@ -318,7 +318,9 @@ def check_entity_slug_convention(entity_types_doc):
     return warnings
 
 
-CURRENT_SCHEMA_VERSION = 1
+# Schema compatibility window is declared in defaults.yaml under
+# `supported_schema_versions: {min, max}`. See T25 / spec invariant
+# 'schema compatibility window'.
 
 REQUIRED_SECTIONS = {
     "facets", "page_types", "size_profiles", "half_life_tiers",
@@ -364,32 +366,92 @@ def check_defaults_valid():
 
 
 def check_schema_version(defaults):
-    """Check 1b: defaults.yaml has a valid schema_version."""
+    """Check 1b: schema version range is valid and instance is within range."""
     errors = []
     if not isinstance(defaults, dict):
         return errors
     version = defaults.get("schema_version")
-    if version is None:
+    if not isinstance(version, int):
         errors.append(
             {
                 "check": "schema_version_missing",
                 "severity": "error",
                 "file": str(DEFAULTS_YAML),
-                "message": "sprue/defaults.yaml is missing schema_version",
+                "message": "sprue/defaults.yaml is missing or has non-integer schema_version",
             }
         )
-    elif version != CURRENT_SCHEMA_VERSION:
+        return errors
+
+    window = defaults.get("supported_schema_versions")
+    if not isinstance(window, dict):
         errors.append(
             {
-                "check": "schema_version_mismatch",
+                "check": "schema_window_missing",
+                "severity": "error",
+                "file": str(DEFAULTS_YAML),
+                "message": "sprue/defaults.yaml is missing supported_schema_versions mapping",
+            }
+        )
+        return errors
+
+    wmin = window.get("min")
+    wmax = window.get("max")
+    if not isinstance(wmin, int) or not isinstance(wmax, int):
+        errors.append(
+            {
+                "check": "schema_window_invalid",
+                "severity": "error",
+                "file": str(DEFAULTS_YAML),
+                "message": "supported_schema_versions.min and .max must be integers",
+            }
+        )
+        return errors
+
+    if not (wmin <= version <= wmax):
+        errors.append(
+            {
+                "check": "schema_version_outside_own_window",
                 "severity": "error",
                 "file": str(DEFAULTS_YAML),
                 "message": (
-                    f"schema_version {version} does not match expected "
-                    f"{CURRENT_SCHEMA_VERSION} — platform upgrade may be needed"
+                    f"engine schema_version {version} is outside its own "
+                    f"supported range [{wmin}, {wmax}]"
                 ),
             }
         )
+
+    # Load instance config and check its schema_version if set
+    try:
+        instance_cfg = load_yaml(CONFIG_YAML)
+    except Exception:
+        return errors  # no instance config — that's fine
+
+    if not isinstance(instance_cfg, dict):
+        return errors
+
+    inst_ver = instance_cfg.get("schema_version")
+    if inst_ver is not None:
+        if not isinstance(inst_ver, int):
+            errors.append(
+                {
+                    "check": "instance_schema_invalid",
+                    "severity": "error",
+                    "file": str(CONFIG_YAML),
+                    "message": f"instance schema_version must be an integer, got {type(inst_ver).__name__}",
+                }
+            )
+        elif not (wmin <= inst_ver <= wmax):
+            errors.append(
+                {
+                    "check": "instance_schema_out_of_range",
+                    "severity": "error",
+                    "file": str(CONFIG_YAML),
+                    "message": (
+                        f"instance schema_version {inst_ver} is outside supported "
+                        f"range [{wmin}, {wmax}] — run `sprue upgrade --accept-schema-change`"
+                    ),
+                }
+            )
     return errors
 
 
