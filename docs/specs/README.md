@@ -11,6 +11,6 @@ For the full development model, see `docs/development-process.md`.
 | [Emergent Classification](emergent-classification.md) | accepted |
 | [Platform Reusability](platform-reusability.md) | accepted |
 | [Source-Grounded Knowledge](source-grounded-knowledge.md) | accepted |
-| [Platform Distribution](platform-distribution.md) | draft |
+| [Platform Distribution](platform-distribution.md) | accepted |
 | [Source Authority Pipeline](source-authority-pipeline.md) | draft |
 | [Verified Knowledge Service](verified-knowledge-service.md) | draft |
