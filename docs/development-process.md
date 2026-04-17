@@ -259,6 +259,31 @@ A plan is NOT needed for: single-file bug fixes, config tuning, documentation im
 
 Plans use a lightweight format: YAML frontmatter (`feature`, `status`, `date`), then sections for Tasks (ordered checklist with file paths), Dependencies (which tasks depend on others), and Acceptance Criteria. See `docs/plans/README.md` for the template.
 
+## How Plans Are Executed
+
+Plans are executed by an implementing agent (LLM or human). Each task in a plan falls into one of three categories, and the execution mode differs for each:
+
+| Task type | Examples | Execution mode |
+|---|---|---|
+| **Mechanical** | File edit, test run, lint fix, deterministic refactor, dependency install, read/search | Stream through. Report one line per task. |
+| **Decision** | Choose between architectures, resolve scope surprise, pick a library, name a thing | Stop. Present options. Wait for input. |
+| **Destructive** | `git push --force`, delete files/branches, drop DB tables, publish to PyPI, production deploy | Stop. Describe intent and blast radius. Wait for explicit approval. |
+
+**Streaming** means: execute consecutive mechanical tasks without pausing between them. Report progress inline with a single status line per task (`✓ T3: Created lib.py`). Summarize at the end, not after each step. The user can interrupt at any time by typing any message — the agent stops and awaits direction.
+
+**Default mode negotiation**: At the start of a plan's execution, the agent announces the plan and asks whether to execute autonomously (stream mechanical tasks, stop only at decisions and destructive ops) or step-by-step (pause after each task). If the user confirms the plan with "go", "run it", or equivalent, the default is autonomous. If the user says "walk me through it" or asks detailed questions up front, the default is step-by-step.
+
+**Pause triggers during a streaming batch** — even in autonomous mode, the agent stops when:
+
+- A command fails in a non-obvious way (not a typo, not a missing import — a real failure)
+- An audit or investigation reveals scope materially larger than planned
+- The next task would violate a spec invariant or skip a 6-layer-stack prerequisite
+- The agent is about to execute a task not in the original plan
+
+**Anti-pattern — approval theater**: pausing between consecutive mechanical tasks to ask "continue?" when the user has no realistic reason to say no. If a user response of "next" or "continue" is repeated more than twice in a row without any course correction, the agent is over-gating. Stream.
+
+**Progress reporting** during streaming should be terse. Group trivial steps (`✓ T3–T5: created 3 test files, all passing`). Do not re-explain the plan. Do not ask for permission to continue unless a real pause trigger fires. At batch end, summarize what changed, any deviations, and the next decision point.
+
 ## When to Write a Design Doc
 
 A design doc is warranted when:
