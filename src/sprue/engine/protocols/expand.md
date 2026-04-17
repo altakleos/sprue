@@ -56,7 +56,7 @@ Reject candidates that:
 - Already exist in the wiki (check manifest)
 - Were previously proposed and rejected (check `instance/state/expansions.yaml` and `instance/state/enhancements.yaml`)
 - Fall below the audience bar defined in `instance/identity.md` (too basic, below `size_profiles.min_creation_words` of non-obvious content)
-- Would drift too far from the KB's existing facet values (must share `config.expand.min_shared_facets`+ facet values with existing content)
+- Would drift too far from the KB's existing facet values (must share `config.expand.min_shared_facets`+ facet values with existing content). Candidates below this threshold are NOT rejected — they receive a scoring penalty of `config.expand.facet_miss_penalty` (default 0.15) and are shown in the **Broaden** section of the results table.
 
 Enhance-flagged gaps (Strategy 0) go through the same filters. If expand rejects an enhance finding, update its `status` to `filtered` in `instance/state/enhancements.yaml` with a `filter_reason`.
 
@@ -74,21 +74,25 @@ Score each candidate on 3 dimensions:
 
 **Enhance signal bonus:** Strategy 0 candidates receive an additive bonus of `expand.enhance_signal_bonus` (default 0.10) after base scoring. This reflects their pre-validation by quality analysis. The bonus is capped so the final score never exceeds 1.0. Strategy 0 candidates that provide `related_pages` use those for the connectivity dimension directly (more accurate than heuristic estimation).
 
-Present the results as a ranked table with enhance-flagged gaps in a distinct section at the top:
+Present the results as a ranked table split into three sections — enhance-flagged gaps first, then **Deepen** (candidates that strengthen existing clusters, sharing `min_shared_facets`+ facet values), then **Broaden** (candidates that open new territory within the identity's scope, below the facet threshold). This split makes both pools visible so the user can make an informed choice between depth and breadth.
 
 ```
  ── Enhance-flagged gaps (from enhance run YYYY-MM-DD) ────────────────────
  #   Topic                    Type        Dir             Signal              Score
- E1  grpc-load-balancing      concept     .sprue/      enhance: Graph      0.91
+ E1  grpc-load-balancing      concept     networking/     enhance: Graph      0.91
  E2  kafka-exactly-once       concept     data/           enhance: Content    0.87
 
- ── Expand discoveries ────────────────────────────────────────────────────
+ ── Deepen (strengthen existing clusters) ─────────────────────────────────
  1   flink-checkpointing      concept     data/           dangling link       0.92
  2   kafka-streams-vs-flink   comparison  architecture/   missing comparison  0.88
  3   circuit-breaker-overhead  recipe      architecture/   conflict follow-up  0.85
+
+ ── Broaden (new territory within identity scope) ─────────────────────────
+ 4   service-mesh-overview    concept     networking/     cluster edge        0.68
+ 5   wasm-runtimes            concept     compute/        online research     0.62
  ...
  ─   ──────────────────────   ─────────   ──────────────  ──────────────────  ─────
- ×   kubernetes-basics        concept     .sprue/      cluster edge        0.45  REJECTED: below audience bar
+ ×   kubernetes-basics        concept     infra/          cluster edge        0.45  REJECTED: below audience bar
 ```
 
 **STOP. Wait for approval.** Accept: `all`, `1,3,E1`, `all except E2,4`, `none`.
@@ -234,7 +238,7 @@ Sources imported:
 - Maximum topics and imports per run: see `instance/config.yaml` `expand:` section.
 - EXPAND never compiles. It only imports. The user runs `compile` when ready.
 - EXPAND never modifies existing wiki pages.
-- Topic drift detection: every candidate must share `config.expand.min_shared_facets`+ facet values with the seed content or existing wiki pages.
+- Topic drift detection: candidates sharing fewer than `config.expand.min_shared_facets` facet values receive a `config.expand.facet_miss_penalty` scoring penalty and appear in the **Broaden** section. They are not rejected — the user decides whether to pursue breadth or depth.
 - Don't re-propose topics rejected in previous runs (check `instance/state/expansions.yaml` and `instance/state/enhancements.yaml`).
 
 ---
