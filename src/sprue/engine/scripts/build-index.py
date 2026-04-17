@@ -17,7 +17,7 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import load as load_config
-from lib import SKIP_DIRS, SKIP_FILES as SKIP, parse_frontmatter, find_wiki_pages  # backwards compat
+from lib import SKIP_DIRS, SKIP_FILES as SKIP, parse_frontmatter, find_wiki_pages, normalize_relationship_types  # backwards compat
 
 # T11: Route engine/instance paths through resolvers.
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
@@ -37,12 +37,9 @@ ENTITY_TYPES_PATH = instance_root() / "instance" / "entity-types.yaml"
 ENTITY_TYPES_RAW = yaml.safe_load(ENTITY_TYPES_PATH.read_text()) if ENTITY_TYPES_PATH.exists() else {}
 ENTITY_REGISTRY = ENTITY_TYPES_RAW.get("entities", {})
 
-_RAW_REL_TYPES = ENTITY_TYPES_RAW.get("relationship_types", {})
-# Support both dict (slug→cfg) and list-of-dicts (each with 'name') formats
-if isinstance(_RAW_REL_TYPES, list):
-    RELATIONSHIP_TYPES = {item["name"]: item for item in _RAW_REL_TYPES if "name" in item}
-else:
-    RELATIONSHIP_TYPES = _RAW_REL_TYPES
+RELATIONSHIP_TYPES = normalize_relationship_types(
+    ENTITY_TYPES_RAW.get("relationship_types", {})
+)
 REL_DISPLAY_TO_SLUG = {}
 for _slug, _cfg in RELATIONSHIP_TYPES.items():
     REL_DISPLAY_TO_SLUG[_cfg.get("display", "").lower()] = _slug

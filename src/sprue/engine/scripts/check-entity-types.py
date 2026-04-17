@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # adds src/
 from sprue.engine_root import instance_root
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # for lib
-from lib import SKIP_DIRS
+from lib import SKIP_DIRS, normalize_relationship_types
 
 MANIFEST = instance_root() / "wiki" / ".index" / "manifest.yaml"
 ENTITY_TYPES_PATH = instance_root() / "instance" / "entity-types.yaml"
@@ -50,11 +50,7 @@ def main():
     et = yaml.safe_load(ENTITY_TYPES_PATH.read_text()) or {}
     registry = et.get("entities", {})
     raw_rel_types = et.get("relationship_types", [])
-    # Normalize: support both list-of-dicts (name key) and dict-of-dicts (slug key)
-    if isinstance(raw_rel_types, list):
-        rel_types = {item["name"]: item for item in raw_rel_types if isinstance(item, dict) and "name" in item}
-    else:
-        rel_types = raw_rel_types or {}
+    rel_types = normalize_relationship_types(raw_rel_types)
 
     # Build display → slug lookup
     rel_display_to_slug = {}

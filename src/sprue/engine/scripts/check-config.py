@@ -44,6 +44,7 @@ from sprue.engine_root import engine_root, instance_root
 import yaml
 
 from config import load as load_config
+from lib import normalize_relationship_types
 
 OPS = engine_root()
 PROMPTS = OPS / "prompts"
@@ -153,12 +154,9 @@ def check_facets_well_formed(facets_doc):
 
 def check_relationship_types(entity_types_doc):
     errors = []
-    raw_rel_types = (entity_types_doc or {}).get("relationship_types") or []
-    # Normalize: support both list-of-dicts (name key) and dict-of-dicts (slug key)
-    if isinstance(raw_rel_types, list):
-        rel_types = {item["name"]: item for item in raw_rel_types if isinstance(item, dict) and "name" in item}
-    else:
-        rel_types = raw_rel_types or {}
+    rel_types = normalize_relationship_types(
+        (entity_types_doc or {}).get("relationship_types")
+    )
     seen_displays = {}
     for slug, cfg in rel_types.items():
         if not isinstance(cfg, dict):
