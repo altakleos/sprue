@@ -296,6 +296,7 @@ maintenance:
 # ── Expand ────────────────────────────────────────────────────────────────
 # Controls for gap discovery and research.
 expand:
+  default_mode: semi            # manual | semi | auto — mode when no flag is passed
   max_suggestions: 15           # max topic suggestions per run
   max_imports: 5                # max sources to import per run
   min_shared_facets: 1          # candidates must share N+ facet values with existing content

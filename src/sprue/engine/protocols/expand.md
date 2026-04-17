@@ -162,12 +162,12 @@ Append to `memory/log.jsonl`.
 
 ## Modes
 
-Three automation levels. Settings in `instance/config.yaml` under `expand:`.
+Three automation levels. The default mode is `config.expand.default_mode` (default: `semi`). Override per invocation with `--manual`, `--semi`, or `--auto`.
 
 | Mode | Invocation | Topic gate | Source gate | Behavior |
 |---|---|---|---|---|
-| **manual** | `expand` | User picks | User picks | Full control. Default. |
-| **semi** | `expand --semi` | User picks | LLM picks best | User steers topics, LLM handles sources. |
+| **manual** | `expand --manual` | User picks | User picks | Full control. |
+| **semi** | `expand --semi` or bare `expand` (default) | User picks | LLM picks best | User steers topics, LLM handles sources. |
 | **auto** | `expand --auto` | LLM picks top N | LLM picks best | Fully delegated. Post-hoc report. |
 
 Auto is **stricter**, not looser — less oversight means tighter caps. See `instance/config.yaml` for thresholds (`max_topics`, `min_topic_score`, `sources_per_topic`).
