@@ -83,6 +83,20 @@ def engine_root() -> Path:
     return Path(_resource_stack.enter_context(res.as_file(traversable)))
 
 
+def _clear_cache() -> None:
+    """Clear resolver caches. For tests only — not part of the public API.
+
+    ``engine_root`` and ``instance_root`` memoize their results via
+    ``lru_cache`` because resolution involves filesystem walks and
+    importlib resource materialization. In a CLI process, the caller's
+    working directory does not change, so caching is safe. Tests that
+    create multiple instances in different directories must call this
+    between fixtures to force re-resolution.
+    """
+    engine_root.cache_clear()
+    instance_root.cache_clear()
+
+
 if __name__ == "__main__":
     print(f"engine_root:   {engine_root()}")
     print(f"instance_root: {instance_root()}")

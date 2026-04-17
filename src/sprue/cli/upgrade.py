@@ -29,6 +29,26 @@ def _read_schema_version(path: Path) -> int | None:
     return None
 
 
+def _read_schema_window(path: Path) -> tuple[int, int] | None:
+    """Read supported_schema_versions {min, max} from a YAML file."""
+    if not path.exists():
+        return None
+    try:
+        data = yaml.safe_load(path.read_text())
+        if not isinstance(data, dict):
+            return None
+        window = data.get("supported_schema_versions")
+        if not isinstance(window, dict):
+            return None
+        wmin = window.get("min")
+        wmax = window.get("max")
+        if isinstance(wmin, int) and isinstance(wmax, int):
+            return (wmin, wmax)
+    except Exception:
+        pass
+    return None
+
+
 @click.command("upgrade")
 @click.argument("directory", type=click.Path(exists=True), default=".")
 @click.option(
@@ -56,6 +76,16 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         )
         sys.exit(1)
 
+    if dot_sprue.is_symlink():
+        click.echo(
+            f".sprue/ at {dir_path} is a symlink. `sprue upgrade` does not follow "
+            "symlinks to avoid unintentionally modifying shared engine directories. "
+            "Replace the symlink with a concrete directory, or upgrade the target "
+            "directly.",
+            err=True,
+        )
+        sys.exit(1)
+
     # --- Read current version ---
     if version_file.exists():
         old_version = version_file.read_text().strip()
@@ -71,22 +101,37 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         sys.exit(0)
 
     # --- Schema compatibility check ---
+    # Prefer range-based (supported_schema_versions window); fall back to
+    # exact match for engines that predate the window declaration.
     instance_schema = _read_schema_version(dir_path / "instance" / "config.yaml")
     with ExitStack() as stack:
         engine_src = stack.enter_context(
             resources.as_file(resources.files("sprue.engine"))
         )
         engine_schema = _read_schema_version(engine_src / "defaults.yaml")
+        engine_window = _read_schema_window(engine_src / "defaults.yaml")
 
-    schema_changed = (
-        instance_schema is not None
-        and engine_schema is not None
-        and instance_schema != engine_schema
-    )
+    if instance_schema is None:
+        # No instance-declared schema — nothing to check.
+        schema_changed = False
+    elif engine_window is not None:
+        wmin, wmax = engine_window
+        schema_changed = not (wmin <= instance_schema <= wmax)
+    elif engine_schema is not None:
+        schema_changed = instance_schema != engine_schema
+    else:
+        schema_changed = False
 
     if schema_changed and not accept_schema_change:
+        if engine_window is not None:
+            wmin, wmax = engine_window
+            detail = (
+                f"instance: {instance_schema}, engine supports: [{wmin}, {wmax}]"
+            )
+        else:
+            detail = f"instance: {instance_schema}, engine: {engine_schema}"
         click.echo(
-            f"Schema change detected (instance: {instance_schema}, engine: {engine_schema}).\n"
+            f"Schema change detected ({detail}).\n"
             "Review changes in .sprue/defaults.yaml and update instance/config.yaml if needed.\n"
             "Re-run `sprue upgrade --accept-schema-change` after reviewing.",
             err=True,

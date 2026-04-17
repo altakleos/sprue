@@ -407,6 +407,20 @@ def check_schema_version(defaults):
         )
         return errors
 
+    if wmin > wmax:
+        errors.append(
+            {
+                "check": "schema_window_inverted",
+                "severity": "error",
+                "file": str(DEFAULTS_YAML),
+                "message": (
+                    f"supported_schema_versions.min ({wmin}) is greater than "
+                    f".max ({wmax}) — window is empty"
+                ),
+            }
+        )
+        return errors
+
     if not (wmin <= version <= wmax):
         errors.append(
             {
