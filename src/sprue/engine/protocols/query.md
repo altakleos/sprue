@@ -17,7 +17,7 @@ Triggered when the human asks a question about a technology.
 Preferred entry point for natural-language questions; faster and more accurate than tag-based lookup.
 
 ```bash
-python3 sprue/scripts/semantic-search.py "query" [--top N] [--threshold F] [--json]
+python3 .sprue/scripts/semantic-search.py "query" [--top N] [--threshold F] [--json]
 ```
 
 **Contract:**
@@ -26,7 +26,7 @@ python3 sprue/scripts/semantic-search.py "query" [--top N] [--threshold F] [--js
 - Defaults: `--top 10`, `--threshold 0.25`. Threshold ≥0.4 is strong relevance; 0.25–0.4 is a loose fit; below 0.25 is dropped.
 - Output (`--json`): list of `{slug, section, title, score}` sorted by score desc.
 - Storage: reads `wiki/.index/search.db` (SQLite); falls back to `wiki/.index/embeddings.jsonl` if the DB is missing.
-- Preconditions: embeddings must exist. If `search.db` and `embeddings.jsonl` are both absent, run `python3 sprue/scripts/build-embeddings.py` (or `maintain rebuild-index`) first.
+- Preconditions: embeddings must exist. If `search.db` and `embeddings.jsonl` are both absent, run `python3 .sprue/scripts/build-embeddings.py` (or `maintain rebuild-index`) first.
 
 **Slug resolution:** results return slugs like `dsp-program`, not paths. Resolve with `find wiki -name "<slug>.md"` per AGENTS.md — wiki pages live in subdirectories, never assume `wiki/<slug>.md` directly.
 

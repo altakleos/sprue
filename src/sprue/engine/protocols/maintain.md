@@ -1,6 +1,6 @@
 # Maintenance Protocol
 
-*Requires `AGENTS.md` and `sprue/engine.md` in context (loaded via bootstrap).*
+*Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
 **Usage:** Run with a parameter: `lint` | `verify` | `rebuild-index` | `upgrade` | `reorganize` | `full`
 
@@ -10,7 +10,7 @@
 
 ### Verification Sweep (runs first)
 
-Run `bash sprue/verify.sh` from the repo root. This executes every `verify:` command in
+Run `bash .sprue/verify.sh` from the repo root. This executes every `verify:` command in
 `memory/rules.yaml` and reports pass/fail for each rule.
 
 Present results before other lint findings. Fix auto-fixable violations immediately.
@@ -48,17 +48,17 @@ Format: auto-fixes first (already done), then approval items as numbered list, t
    - Within each directory, list subdirectories separately
    - Each entry: `- [[page-name]] — summary from frontmatter`
    - Stats block at top: total pages, breakdown by directory, count of unverified critical pages
-3. Run `python3 sprue/scripts/build-index.py` to regenerate machine-readable indexes (manifest.yaml, by-tag.yaml, by-type.yaml)
-4. Run `python3 sprue/scripts/build-embeddings.py` to regenerate semantic search embeddings
+3. Run `python3 .sprue/scripts/build-index.py` to regenerate machine-readable indexes (manifest.yaml, by-tag.yaml, by-type.yaml)
+4. Run `python3 .sprue/scripts/build-embeddings.py` to regenerate semantic search embeddings
 5. Log the rebuild to `memory/log.jsonl`
 
 ---
 
 ## verify
 
-**Delegates to the standalone verify operation.** Read `sprue/protocols/verify.md` for the full protocol.
+**Delegates to the standalone verify operation.** Read `.sprue/protocols/verify.md` for the full protocol.
 
-1. Run `python3 sprue/scripts/decay.py` to check for confidence downgrades from topic staleness
+1. Run `python3 .sprue/scripts/decay.py` to check for confidence downgrades from topic staleness
 2. Execute the verify protocol (default filter: `--tier critical`)
 3. Check `memory/corrections.md` — ensure all active corrections are respected
 4. Evaluate correction retirement (3 consecutive passes → eligible)
@@ -102,13 +102,13 @@ Present auto-upgrades already done + approval items as a table. Log all changes.
 First, emit placement signals to ground the analysis:
 
 ```
-python3 sprue/scripts/build-index.py          # ensure manifest is fresh
-python3 sprue/scripts/placement-signals.py --json > /tmp/signals.json
-python3 sprue/scripts/placement-signals.py    # human-readable copy
+python3 .sprue/scripts/build-index.py          # ensure manifest is fresh
+python3 .sprue/scripts/placement-signals.py --json > /tmp/signals.json
+python3 .sprue/scripts/placement-signals.py    # human-readable copy
 ```
 
 The signals are advisory — they never fail verify. Apply judgment from
-`sprue/protocols/compile.md:104-113` placement prose to each proposal.
+`.sprue/protocols/compile.md:104-113` placement prose to each proposal.
 
 Then analyze the full wiki structure. Produce a proposal covering:
 

@@ -1,6 +1,6 @@
 # Resolve Relationships Protocol
 
-*Requires `AGENTS.md` and `sprue/engine.md` in context (loaded via bootstrap).*
+*Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
 **Trigger:** "resolve relationships", "triage rel-links", "fix broken rel-links".
 
@@ -17,14 +17,14 @@ Triage broken wikilinks in `## Relationships` sections of entity pages. For each
 - `instance/identity.md` — scope direction. Read first; it determines what "in-scope" means.
 - `instance/entity-types.yaml` — relationship-type vocabulary. `Requires`, `Managed by` are load-bearing (never UNWRAP). `Competes with`, `Alternative to`, `Integrates with`, `Implements`, `Extends`, `Part of`, `Deprecated by` are informational (UNWRAP permitted).
 - `wiki/.index/manifest.yaml` — for rename-candidate matching.
-- `python3 sprue/scripts/check-entity-types.py --json` — canonical input list. Exit 0 regardless of warning count; this is reporting, not a gate.
+- `python3 .sprue/scripts/check-entity-types.py --json` — canonical input list. Exit 0 regardless of warning count; this is reporting, not a gate.
 
 ---
 
 ## Phase 1 — Discover
 
 ```
-python3 sprue/scripts/check-entity-types.py --json
+python3 .sprue/scripts/check-entity-types.py --json
 ```
 
 Parse. Collect records where `kind == "BROKEN_REL_LINK"`. If zero, report "no broken relationships" and exit.
@@ -110,11 +110,11 @@ Process approved rows:
     rationale: "<Phase 2 one-liner>"
     disposition: pending
   ```
-  Do NOT invoke `sprue/protocols/import.md` inline. The queue is the hand-off to `expand`.
+  Do NOT invoke `.sprue/protocols/import.md` inline. The queue is the hand-off to `expand`.
 
 - **UNCERTAIN**: no side effects. List them in the completion report for conversation follow-up.
 
-After all edits, for every touched page run `bash sprue/verify.sh --file <path>` to confirm no regressions.
+After all edits, for every touched page run `bash .sprue/verify.sh --file <path>` to confirm no regressions.
 
 ---
 

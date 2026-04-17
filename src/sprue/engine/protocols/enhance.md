@@ -9,7 +9,7 @@ Use this prompt to discover gaps, opportunities, and improvements across the ent
 ## The Prompt
 
 ```
-Requires `sprue/engine.md` in context (loaded via bootstrap). Then execute this multi-agent discovery process.
+Requires `.sprue/engine.md` in context (loaded via bootstrap). Then execute this multi-agent discovery process.
 
 STEP 1: GATHER WIKI STATE
 Run these commands to collect data for the agents:
@@ -21,11 +21,11 @@ Run these commands to collect data for the agents:
 5. Type distribution (entity/concept/comparison/recipe)
 6. Pages exceeding max_words from instance/config.yaml (split candidates)
 7. All broken wikilinks
-8. Placement signals — run `python3 sprue/scripts/build-index.py` first, then
-   `python3 sprue/scripts/placement-signals.py --json > /tmp/signals.json`.
+8. Placement signals — run `python3 .sprue/scripts/build-index.py` first, then
+   `python3 .sprue/scripts/placement-signals.py --json > /tmp/signals.json`.
    Include the `summary` block plus the top 10 outliers, high-entropy dirs, and
    subdir proposals in the agent brief. Signals are advisory; the LLM decides
-   what to act on per `sprue/protocols/compile.md:104-113` placement judgment.
+   what to act on per `.sprue/protocols/compile.md:104-113` placement judgment.
 
 STEP 2: SPAWN PARALLEL AGENTS
 
@@ -85,7 +85,7 @@ Append to `instance/state/enhancements.yaml`:
       priority: P0|P1|P2|P3
       rationale: "<one sentence — why this page is needed>"
       related_pages: [<existing slugs that reference or would link to this>]
-      suggested_type: "<page type from sprue/defaults.yaml → page_types:>"
+      suggested_type: "<page type from .sprue/defaults.yaml → page_types:>"
       suggested_dir: "<directory name>"
       status: pending
 ```

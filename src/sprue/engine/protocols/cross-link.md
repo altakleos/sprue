@@ -20,7 +20,7 @@ Scan wiki pages for missing [[wikilinks]] and add them to strengthen the knowled
 ## The Prompt
 
 ```
-Requires `sprue/engine.md` in context (loaded via bootstrap). Then execute this cross-linking process.
+Requires `.sprue/engine.md` in context (loaded via bootstrap). Then execute this cross-linking process.
 
 ═══════════════════════════════════════════════════════════
 PHASE 1: BUILD ALIAS REGISTRY

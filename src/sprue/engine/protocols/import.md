@@ -1,6 +1,6 @@
 # Import Protocol
 
-*Requires `AGENTS.md` and `sprue/engine.md` in context (loaded via bootstrap).*
+*Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
 **Trigger:** "import", "save this", "capture", "bookmark", a bare URL, or a file path.
 
@@ -8,7 +8,7 @@
 
 Fast, intelligent capture. Fetch content, save the original untouched to `raw/`, record classification metadata in `imports.yaml`, and stop. No compilation, no wiki pages, no linking.
 
-IMPORT determines **content type** from the source format (trivial, no LLM needed) and extracts the **title**. Facet classification (see `sprue/defaults.yaml` → `facets:`) is COMPILE's job — they require understanding the content.
+IMPORT determines **content type** from the source format (trivial, no LLM needed) and extracts the **title**. Facet classification (see `.sprue/defaults.yaml` → `facets:`) is COMPILE's job — they require understanding the content.
 
 ---
 
@@ -55,7 +55,7 @@ Determine the following:
 
 **Title** — extracted from content heading, metadata, or URL slug. No deep reading needed.
 
-Content type and title are all IMPORT classifies. Facet classification (see `sprue/defaults.yaml` → `facets:`) is COMPILE's job — they require understanding the content, which IMPORT doesn't do.
+Content type and title are all IMPORT classifies. Facet classification (see `.sprue/defaults.yaml` → `facets:`) is COMPILE's job — they require understanding the content, which IMPORT doesn't do.
 
 ### 4. Save to raw/
 
@@ -165,7 +165,7 @@ Process each independently. One confirmation line per URL. Failures don't block 
 When the user says `import --compile <url>` or `ingest <url>`:
 
 1. Run the full IMPORT protocol above
-2. Immediately run COMPILE (read `sprue/protocols/compile.md`) on just that one raw file
+2. Immediately run COMPILE (read `.sprue/protocols/compile.md`) on just that one raw file
 3. This is sugar for the common "save and process now" workflow
 
 ---
