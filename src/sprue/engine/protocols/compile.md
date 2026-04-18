@@ -138,6 +138,30 @@ For each approved item, in order:
    - Depth and voice per `instance/identity.md`
    - Outbound `[[wikilinks]]` to existing pages
    - Mermaid diagram if the topic involves a flow/lifecycle/decision (and `diagrams: true` in config)
+
+#### Cite-then-claim attribution (sourced pages only)
+
+For `provenance: sourced` pages with available raw files, apply the cite-then-claim generation pattern during step 8 page writing. For each verifiable factual claim (version numbers, defaults, limits, behavioral assertions — same extraction criteria as `.sprue/protocols/verify.md` Step 3c):
+
+1. Select the specific excerpt from the raw source that supports the claim
+2. Generate the claim grounded in that excerpt
+3. Insert an inline `[^src-N]` marker after the claim (using `config.source_authority.markers.prefix` for the marker prefix)
+
+Target: >80% of verifiable claims should carry markers. This is advisory per `config.source_authority.enforce_coverage_threshold` — some claims synthesize across multiple source sections and cannot be attributed to a single excerpt.
+
+Append a `## Sources` heading at the end of the page (before `## See Also` if present) with footnote definitions:
+
+```markdown
+## Sources
+
+[^src-1]: "The default retention period is 7 days" — raw/articles/kafka-guide.md
+[^src-2]: "supports up to 200,000 partitions per cluster" — raw/articles/kafka-guide.md
+```
+
+This does NOT apply to `provenance: synthesized` pages. Synthesized pages have no raw source to cite from — their claims are attributed retrospectively by the verify protocol.
+
+This is the **write-time track** of the two-track attribution model. The verify protocol (`.sprue/protocols/verify.md`) handles the **verify-time track** for existing pages and synthesized content. Both tracks produce the same marker format and ledger entries.
+
 9. Write to `wiki/<directory>/<slug>.md`
 10. Run `bash .sprue/verify.sh --file <path>`. Fix violations before proceeding.
 11. Run cross-link single-page mode: scan existing pages for inbound links to the new page (per `.sprue/protocols/cross-link.md` rules)
@@ -172,6 +196,23 @@ After EACH page is written successfully, append to `instance/state/compilations.
   compiled_at: "<ISO8601>"
   profile: <profile-name-or-default>
 ```
+
+When cite-then-claim markers were inserted (sourced pages only), append corresponding entries to `instance/state/verifications.yaml` for each marked claim:
+
+```yaml
+- verified_at: '<ISO8601>'
+  mode: compile
+  page: <slug>
+  claims:
+    - id: src-1
+      source_ref: <raw-file-path>
+      source_excerpt: "<excerpt selected from raw source>"
+      excerpt_hash: "sha256:<hash>"
+      verdict: confirmed
+      source_tier_used: raw
+```
+
+These entries use `mode: compile` to distinguish write-time attribution from verify-time attribution. The `verdict: confirmed` reflects that the claim was generated directly from the source excerpt. See `.sprue/protocols/verify.md` Phase 4 for the complete ledger schema.
 
 After every 3-5 pages, update `wiki/overview.md` and `memory/log.jsonl`.
 
