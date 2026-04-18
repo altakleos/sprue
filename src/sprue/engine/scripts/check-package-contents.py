@@ -47,6 +47,10 @@ def check_wheel(wheel_path: Path) -> list[str]:
                 violations.append(name)
                 continue
             # Path segment check (skip wheel metadata dirs like *.dist-info)
+            # Also skip templates/ — these are scaffolding for sprue init,
+            # not instance content leaking into the wheel.
+            if "templates" in parts:
+                continue
             for seg in parts:
                 if seg in FORBIDDEN_SEGMENTS:
                     violations.append(name)
