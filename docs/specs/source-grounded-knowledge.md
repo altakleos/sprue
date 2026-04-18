@@ -16,6 +16,8 @@ The platform compiles knowledge from real, human-produced sources. Every factual
 - Training knowledge alone cannot confirm hard factual claims (version numbers, defaults, limits, behavioral assertions). When all other tiers are exhausted, the claim is marked unverifiable — not guessed.
 - Authoritative documentation takes precedence when sources conflict. The raw file may have been wrong when imported; the authoritative doc represents current truth.
 - Source capture and content interpretation are separate operations. Capture preserves the original unchanged. Interpretation happens later, at compilation time, when context is available.
+- Provenance completeness — every wiki page carries machine-readable provenance metadata: a `provenance` field (sourced or synthesized) and, for sourced pages, a `sources` list of `{raw, url}` objects linking to the raw file and original URL. This metadata is validated at compile time for new pages and enforced wiki-wide after backfill.
+- Source quality ranking — source quality follows an explicit tier ranking defined in the source-authority-model design doc and applied consistently in verification verdicts and query responses.
 
 ## Rationale
 
@@ -32,3 +34,5 @@ The tiered authority model ensures that the most reliable source is always tried
 - [ADR-0002: Content Safety Invariants](../decisions/0002-content-safety-invariants.md) — raw immutability as a safety principle
 - [ADR-0003: Three-Command Pipeline](../decisions/0003-three-command-pipeline.md) — separation of capture (import) from interpretation (compile)
 - [ADR-0009: Verification Pipeline](../decisions/0009-verification-pipeline.md) — source-backed fact-checking with tiered escalation
+- [ADR-0027: Sources Field in Frontmatter](../decisions/0027-sources-field-in-frontmatter.md) — machine-readable source metadata in page frontmatter
+- [ADR-0028: Provenance Enforcement Model](../decisions/0028-provenance-enforcement-model.md) — validation strategy for provenance metadata

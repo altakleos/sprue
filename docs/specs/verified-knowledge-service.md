@@ -1,6 +1,6 @@
 ---
 status: draft
-date: 2026-04-16
+date: 2026-04-18
 ---
 # Verified Knowledge Service
 
@@ -15,7 +15,7 @@ The platform exposes its verified, source-backed knowledge as a queryable servic
 - Decay-aware freshness — answers include the content's decay tier and age since last verification, enabling consumers to judge timeliness. A fast-decay answer verified 6 months ago is flagged differently from a glacial-decay answer verified 6 months ago.
 - No silent confidence — the service never presents unverified content as verified. Absence of verification is explicitly communicated. A page at medium confidence is returned as medium, not silently promoted.
 - Query interface is read-only — the service retrieves and presents knowledge but never modifies wiki content, state, or indexes.
-- Answers are traceable — every response can be traced back to specific wiki pages, which trace to raw sources, which trace to original URLs. The full provenance chain is available on request.
+- Answers are traceable — every response can be traced back to specific wiki pages, which trace to raw sources, which trace to original URLs. Page-level provenance (sourced/synthesized marking, sources field, tiered verification) provides the baseline trust chain. Per-claim provenance enhances traceability when available but is not required for core guarantees.
 
 ## Rationale
 
@@ -25,6 +25,11 @@ The value proposition is unique: no other knowledge tool can say "this answer is
 
 The read-only constraint ensures the service cannot corrupt the KB. It is a window into verified knowledge, not a write path.
 
+## Dependencies
+
+- [Source-Grounded Knowledge](source-grounded-knowledge.md) (accepted) — provides page-level provenance (sourced/synthesized marking, sources field, tiered verification) required for traceability guarantees.
+- Enhanced by [Source Authority Pipeline](source-authority-pipeline.md) (draft) — per-claim provenance strengthens traceability but is not a prerequisite for this spec's core invariants.
+
 ## Design
 
 - [Source Authority Model](../design/source-authority-model.md) — tiered source escalation and authority hierarchy
@@ -32,4 +37,5 @@ The read-only constraint ensures the service cannot corrupt the KB. It is a wind
 
 ## Decisions
 
-*None yet — this spec is deferred. ADRs will be created when design and implementation begin.*
+- Per-claim provenance (source-authority-pipeline spec) enhances traceability but is not required for this spec's core guarantees. Page-level provenance from source-grounded-knowledge (accepted) is sufficient for the baseline trust contract.
+- *ADRs will be created when design and implementation begin.*
