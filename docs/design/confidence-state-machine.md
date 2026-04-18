@@ -1,6 +1,6 @@
 ---
 status: accepted
-date: 2026-04-16
+date: 2026-04-18
 ---
 # Confidence State Machine
 
@@ -15,6 +15,7 @@ Additionally, content ages at different rates. A page about the latest API versi
 ## Specs
 
 - [Continuous Quality](../specs/continuous-quality.md) — confidence is earned, content degrades, quality is visible
+- [Continuous Quality — Source Health Invariant](../specs/continuous-quality.md) — source health monitoring as an operational quality invariant
 
 ## Architecture
 
@@ -96,6 +97,71 @@ A page qualifies for `confidence: high` only when:
 
 If any hard fact remains unverifiable after exhausting all source tiers, the page stays at `medium`. Security misstatements always block promotion — wrong security information causes real harm.
 
+### Source Health Monitoring
+
+Source URLs degrade independently of content age. A page verified against an authoritative URL may lose its evidentiary basis if that URL dies, redirects, or changes content. Source health monitoring detects these events and feeds them into the verification prioritization pipeline.
+
+#### Health Check Targets
+
+Two categories of URLs form the monitoring set:
+
+1. **Registry URLs** — entries in `instance/sources.yaml` (the curated authoritative docs registry). These are the Tier 2 sources used across multiple pages.
+2. **Claim URLs** — `source_url` values in verification ledger entries. These are the specific URLs that confirmed individual claims.
+
+Registry URLs are checked on a fixed interval (`config.source_authority.health_check.interval_days`). Claim URLs are checked when their parent page enters the verification prioritization queue (lazy evaluation — no separate crawl schedule).
+
+#### Drift Categories
+
+| Category | Detection Method | Severity | Response |
+|----------|-----------------|----------|----------|
+| **Source gone** | HTTP 4xx/5xx, DNS failure, or timeout | High | Flag page for re-verification. Record `url_status: dead` in health ledger. |
+| **Source redirected** | HTTP 3xx chain exceeds `max_redirects` or lands on different content | Low | Log final URL. Re-verify only if final destination content differs. |
+| **Excerpt missing** | Source is live but cited excerpt (substring match) no longer appears | Medium | Flag affected claims for re-verification. |
+| **Page-level drift** | Full-page content hash changed since last check | Advisory | No action unless excerpt-level drift also detected. |
+
+The detection hierarchy is intentional: page-level drift is common (sites update constantly) but usually irrelevant. Excerpt-level drift is rare but actionable — it means the specific evidence for a claim may have changed.
+
+#### Health State Ledger
+
+Results are written to `instance/state/source-health.yaml`, following the [Append-Only State Model](append-only-state.md):
+
+```yaml
+# instance/state/source-health.yaml
+- checked_at: '2026-05-01T10:00:00Z'
+  url: https://kafka.apache.org/documentation/#brokerconfigs_log.retention.hours
+  url_status: live           # live | dead | redirected
+  http_status: 200
+  redirect_chain: []
+  page_hash: "sha256:def456..."
+  excerpts_checked:
+    - claim_id: src-1
+      page: kafka
+      excerpt_present: true
+    - claim_id: src-3
+      page: kafka-security
+      excerpt_present: false  # drift detected
+```
+
+Each check appends a new entry; the latest entry per URL is authoritative for current health status. Excerpt drift is detected by comparing the `excerpt_hash` stored in the [Per-Claim Verification Ledger](source-authority-model.md#per-claim-verification-ledger) against re-fetched content.
+
+#### Integration with Decay and Prioritization
+
+Source health events do **not** directly downgrade confidence — a dead URL does not mean the claim is wrong. Instead, health events feed into the verification prioritization score as a boost factor:
+
+- **Source gone** → adds a priority boost equivalent to `config.verify.weights.freshness` (highest weight). The page is treated as if it were never-verified for prioritization purposes.
+- **Excerpt missing** → adds a moderate priority boost. Only the affected claims need re-verification, not the entire page.
+- **Page-level drift without excerpt drift** → no priority change.
+
+This design avoids false confidence downgrades (a temporary DNS failure should not demote a well-verified page) while ensuring that genuinely degraded sources are re-verified promptly. Whether dead sources should trigger automatic confidence downgrade is deferred to a future ADR-lite.
+
+When the verify protocol encounters a dead Tier 1/2 source, it checks the health ledger before attempting a fetch — avoiding redundant network requests and enabling graceful fallback to lower tiers.
+
+#### Opt-In Design
+
+Health checking is disabled by default (`config.source_authority.health_check.enabled: false`). It requires network access, which not all environments provide. When disabled, the system operates exactly as it does today — time-based decay is the only degradation signal.
+
+When enabled, the health check runs as a sub-task of the maintain protocol, not as a standalone command. `sprue/scripts/check-source-health.py` performs HTTP liveness checks and excerpt-level substring matching (v1) against stored `excerpt_hash` values from the verification ledger.
+
 ### Verification Prioritization
 
 `sprue/scripts/prioritize.py` scores pages for verification targeting using weighted factors:
@@ -110,6 +176,8 @@ If any hard fact remains unverifiable after exhausting all source tiers, the pag
 
 The scoring produces a ranked list. In semi-auto mode, the top N are verified without approval. In manual mode, the list is presented for human selection.
 
+When source health monitoring is enabled, pages with dead or drifted source URLs receive a priority boost — see [Source Health Monitoring](#source-health-monitoring) above.
+
 ## Interfaces
 
 | Component | Role |
@@ -123,8 +191,12 @@ The scoring produces a ranked list. In semi-auto mode, the top N are verified wi
 | `sprue/defaults.yaml` → `verify.weights` | Prioritization scoring weights |
 | `sprue/defaults.yaml` → `verify.cooldown_days` | Minimum days between re-verifications |
 | `memory/rules.yaml` | Enforces the confidence invariant as an executable check |
+| `sprue/scripts/check-source-health.py` | Checks URL liveness and excerpt drift for source URLs |
+| `instance/state/source-health.yaml` | Append-only ledger of source health check results |
+| `sprue/defaults.yaml` → `source_authority.health_check.*` | Health check enable flag, interval, timeout, max redirects |
 
 ## Decisions
 
 - [ADR-0015: Content Quality Model — Confidence, Decay, and Self-Healing](../decisions/0015-content-quality-model.md) — why confidence levels with decay tiers over binary reviewed/unreviewed
 - [ADR-0009: Verification Pipeline — Shift-Left to Adversarial](../decisions/0009-verification-pipeline.md) — how verification earns the confidence: high state
+- [ADR-0042: Dead sources boost verification priority, not downgrade confidence](../decisions/0042-source-health-priority-boost.md) — why source health events boost priority rather than directly downgrading confidence

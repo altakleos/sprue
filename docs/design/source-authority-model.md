@@ -1,6 +1,6 @@
 ---
 status: accepted
-date: 2026-04-16
+date: 2026-04-18
 ---
 # Source Authority Model
 
@@ -14,8 +14,8 @@ The design treats the LLM as synthesizer and assessor, not as source. The LLM re
 
 ## Specs
 
-- [Source-Grounded Knowledge](../specs/source-grounded-knowledge.md) — every fact traces to a human-produced source
-- [Source Authority Pipeline](../specs/source-authority-pipeline.md) — per-claim provenance chain (draft)
+- [Source-Grounded Knowledge](../specs/source-grounded-knowledge.md) — every fact traces to a human-produced source; provenance completeness invariant (every verified claim has a source chain); source quality ranking invariant (tiers are exhausted in order)
+- [Per-Claim Source Provenance](../specs/source-authority-pipeline.md) — per-claim attribution, machine-queryable provenance, cite-then-claim (draft)
 
 ## Architecture
 
@@ -135,6 +135,175 @@ tls:
 
 This registry embeds domain expertise: the instance operator knows which sources are canonical for each technology. The LLM consults this registry before falling back to web search.
 
+### Per-Claim Verification Ledger
+
+The verification pipeline produces per-claim attribution records, not just page-level verdicts. Each verifiable claim receives a stable identifier, a source excerpt, and a verdict — stored in the verification ledger and cross-referenced by inline markers in the page body.
+
+#### Claim Identifiers
+
+Each claim receives a page-scoped identifier during verification: `src-1`, `src-2`, etc. Identifiers are assigned sequentially per verification run and are stable within that run. A re-verification of the same page produces new identifiers — the ledger preserves history, and the page body is updated to match the latest run.
+
+The `src-` prefix namespaces claim markers to avoid collision with user-authored footnotes.
+
+#### Inline Citation Markers
+
+Verify inserts footnote-style markers into the page body after each sourced claim:
+
+```markdown
+Kafka defaults to 7-day retention[^src-1] and supports up to 200K partitions per cluster[^src-2].
+```
+
+Markers are inserted by the verify protocol (Phase 3, new sub-step), never by compile. Compile produces the content; verify annotates it with provenance. This separation preserves the principle that compile is synthesis and verify is assessment.
+
+A `## Sources` heading is appended to the page (if absent) containing the footnote definitions:
+
+```markdown
+## Sources
+
+[^src-1]: Kafka Documentation — "The default retention period is 7 days (168 hours)" — https://kafka.apache.org/documentation/#brokerconfigs_log.retention.hours
+[^src-2]: Kafka Documentation — "supports up to 200,000 partitions per cluster" — https://kafka.apache.org/documentation/#design_replicatedlog
+```
+
+#### Ledger Schema Extension
+
+The existing `claims:` array in `instance/state/verifications.yaml` gains per-claim attribution fields. All new fields are optional — old entries without them parse cleanly (backward compatible).
+
+```yaml
+# instance/state/verifications.yaml — extended claims entry
+- verified_at: '2026-04-20T14:30:00Z'
+  mode: semi+adversarial
+  page: kafka
+  claims:
+    - id: src-1
+      claim: "defaults to 7-day retention"
+      source_tier_used: raw
+      source_ref: raw/articles/kafka-complete-guide.md
+      source_excerpt: "The default retention period is 7 days (168 hours)"
+      source_url: https://kafka.apache.org/documentation/#brokerconfigs_log.retention.hours
+      excerpt_hash: "sha256:a1b2c3..."
+      writer_verdict: confirmed
+      final_verdict: confirmed
+      verified_at: '2026-04-20T14:30:00Z'
+```
+
+New fields per claim (all optional, additive):
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `id` | string | Stable marker ID (`src-1`, `src-2`, ...) per page per run |
+| `source_ref` | string | Path to raw file (Tier 1) or null |
+| `source_excerpt` | string | 1-2 sentence quote from source (fair use length) |
+| `source_url` | string | Authoritative URL that confirms the claim |
+| `excerpt_hash` | string | SHA-256 of excerpt at verification time (enables drift detection — see [Source Health Monitoring](confidence-state-machine.md#source-health-monitoring)) |
+
+#### Frontmatter Summary Fields
+
+Three scalar fields are added to page frontmatter, set by verify:
+
+```yaml
+source_quality: official       # dominant source tier used across verified claims
+claims_verified: 12            # count of claims with source attribution
+claims_unverifiable: 1         # hard-fact claims no source could confirm
+```
+
+These fields are null until first verification. `claims_unverifiable > 0` blocks promotion to `confidence: high` — see [Promotion Criteria](confidence-state-machine.md#promotion-criteria) in the confidence state machine design.
+
+#### Relationship to Append-Only State Model
+
+The ledger extension follows the [Append-Only State Model](append-only-state.md) — new entries are appended, old entries are never modified. The `id` field in claims is scoped to the verification entry, not globally unique — the latest entry for a page is authoritative for current marker mappings.
+
+### Provenance Query Interface
+
+The provenance chain is machine-queryable in both directions: claim→source (given a claim, find its source) and source→pages (given a source URL, find all pages citing it).
+
+#### Claim→Source Query
+
+Given a page slug and claim identifier, the system returns a structured provenance record:
+
+```yaml
+page: kafka
+claim_id: src-1
+claim_text: "defaults to 7-day retention"
+verdict: confirmed
+source_chain:
+  tier: raw
+  raw_path: raw/articles/kafka-complete-guide.md
+  source_url: https://kafka.apache.org/documentation/#brokerconfigs_log.retention.hours
+  excerpt: "The default retention period is 7 days (168 hours)"
+  excerpt_hash: "sha256:a1b2c3..."
+verification:
+  verified_at: '2026-04-20T14:30:00Z'
+  mode: semi+adversarial
+  confidence_after: high
+```
+
+The query reads from two sources: the verification ledger (`instance/state/verifications.yaml`) for claim details, and the manifest (`wiki/.index/manifest.yaml`) for page metadata. No new state files are introduced — the interface is a read-only view over existing state.
+
+#### Source→Pages Reverse Lookup
+
+Given a source URL, the system returns all pages whose verification entries cite that URL. A reverse index (`wiki/.index/by-source-url.yaml`) is generated by `build-index.py` to avoid scanning the full ledger on every query.
+
+This reverse lookup answers: "If this source changes, which pages are affected?" — a prerequisite for targeted re-verification when source drift is detected.
+
+#### Implementation: query-provenance.py
+
+A new script in `sprue/scripts/` that reads the verification ledger and manifest:
+
+```
+Usage:
+  query-provenance.py --page kafka --claim-id src-1     # single claim
+  query-provenance.py --page kafka --all                 # all claims for a page
+  query-provenance.py --source-url <url>                 # reverse: pages citing this URL
+  query-provenance.py --json                             # structured output (default: YAML)
+```
+
+The script is a deterministic read-only operation — it belongs in `sprue/scripts/` alongside other index/query tools. It does not modify state.
+
+#### Query Protocol Integration
+
+The query protocol (`query.md`) gains a `provenance-check` query plan pattern. When a user asks about the source of a specific claim, the agent invokes `query-provenance.py` rather than manually parsing the ledger. This keeps provenance queries deterministic and consistent.
+
+### Cite-Then-Claim Generation
+
+When compiling from raw sources, the LLM uses a constrained generation pattern: select a source excerpt first, then generate the claim grounded in it. This produces attribution at write time rather than retrofitting citations after the fact.
+
+#### The Pattern
+
+Traditional LLM generation writes a claim and then searches for a supporting source (claim-then-cite). This is prone to wrong-source attribution — the LLM knows the fact but cites the wrong document. The cite-then-claim pattern (ReClaim 2024) inverts the order:
+
+1. Read source passage
+2. Select relevant excerpt
+3. Generate claim grounded in that excerpt
+4. Attach provisional `[^src-N]` marker
+
+This constrained generation ensures the claim is derived from a specific source passage, not from parametric knowledge with a post-hoc citation.
+
+#### Integration Point
+
+Cite-then-claim activates during compile protocol Step 4 (page writing), only for `provenance: sourced` pages with available raw files. It does not apply to synthesized pages (no raw source to cite from) or non-verifiable content (opinions, tautologies, hedged guidance).
+
+#### Two-Track Attribution Model
+
+Write-time attribution (compile, cite-then-claim for new pages) coexists with verify-time attribution (verify, source escalation for existing pages):
+
+| Responsibility | Compile | Verify |
+|---------------|---------|--------|
+| Generate claims from source excerpts | Yes — cite-then-claim | No |
+| Assign provisional citation markers | Yes — `[^src-N]` placeholders | No |
+| Validate citations against sources | No | Yes — source escalation |
+| Assign final claim IDs | No | Yes — stable `src-N` IDs |
+| Insert final footnote definitions | No | Yes — `## Sources` section |
+
+Compile produces provisional markers that verify then validates, renumbers, and finalizes. A freshly compiled page has citation markers but they are not yet verified — the markers indicate "this claim was generated from this excerpt" but not "this claim has been independently confirmed."
+
+#### Coverage Metric
+
+Coverage = % of verifiable claims with `[^src-N]` markers. Target: >80% for newly compiled pages. Claims that cannot be grounded in a specific excerpt are left unmarked and counted toward `claims_unverifiable`. The threshold is configured via `config.source_authority.enforce_coverage_threshold`.
+
+#### Relationship to Adversarial Mode
+
+Cite-then-claim operates at compile time. Adversarial verification (writer/critic/judge) operates at verify time. They are complementary: cite-then-claim reduces the error rate at generation time (fewer wrong-source attributions to catch later); adversarial verification catches errors that survive generation (wrong excerpts, stale sources, conflated claims).
+
 ## Interfaces
 
 | Component | Role |
@@ -149,9 +318,14 @@ This registry embeds domain expertise: the instance operator knows which sources
 | `wiki/.index/by-slug-raws.yaml` | Maps slugs to raw files for Tier 1 lookup |
 | `config.verify.weights` | Prioritization scoring weights |
 | `config.verify.cooldown_days` | Minimum days between re-verifications |
+| `sprue/scripts/query-provenance.py` | Claim→source and source→pages provenance queries |
+| `wiki/.index/by-source-url.yaml` | Reverse index from source URLs to citing pages |
+| `prompts/compile-attributed.md` | Prompt template for cite-then-claim generation |
 
 ## Decisions
 
 - [ADR-0009: Verification Pipeline — Shift-Left to Adversarial](../decisions/0009-verification-pipeline.md) — why three-pass adversarial over single-pass review
 - [ADR-0002: Content Safety Invariants](../decisions/0002-content-safety-invariants.md) — the foundational principle that content must trace to human-produced sources
 - [ADR-0019: LLM Retrieval Optimization](../decisions/0019-llm-retrieval-optimization.md) — how source retrieval efficiency improves with scale
+- [ADR-0041: Extend verification ledger with per-claim source fields](../decisions/0041-per-claim-ledger-schema.md) — why extend the existing ledger rather than create a separate claims store
+- [ADR-0040: Cite-Then-Claim Generation at Compile Time](../decisions/0040-cite-then-claim-compilation.md) — why constrained generation over post-hoc citation
