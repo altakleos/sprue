@@ -467,7 +467,13 @@ def build_by_source_url(manifest):
 
     # 2. Verification ledger claims
     if VERIFICATIONS_PATH.exists():
-        ledger = yaml.safe_load(VERIFICATIONS_PATH.read_text(encoding="utf-8")) or []
+        raw_ledger = yaml.safe_load(VERIFICATIONS_PATH.read_text(encoding="utf-8")) or []
+        # Normalize: dict-keyed ledger → list of entries with "page" key
+        if isinstance(raw_ledger, dict):
+            ledger = [{"page": slug, **data} for slug, data in raw_ledger.items()
+                       if isinstance(data, dict)]
+        else:
+            ledger = raw_ledger if isinstance(raw_ledger, list) else []
         for entry in ledger:
             page = entry.get("page", "")
             if page not in manifest:
