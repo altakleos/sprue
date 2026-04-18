@@ -18,12 +18,26 @@ import sprue
 _INSTANCE_DIRS = ("instance", "raw", "wiki", "notebook", "inbox", "memory", "state")
 
 # Template files: (source name inside sprue.templates, destination relative to target).
+# These get {{variable}} rendering.
 _TEMPLATE_MAP = (
     ("AGENTS.md", "AGENTS.md"),
     ("README.md", "README.md"),
     (".gitignore", ".gitignore"),
     ("identity.md", "instance/identity.md"),
     ("config.yaml", "instance/config.yaml"),
+)
+
+# Tool-specific agent hook shims: (source path in templates, destination).
+# Static files — no variable rendering. Each points to AGENTS.md.
+_HOOK_MAP = (
+    ("CLAUDE.md", "CLAUDE.md"),
+    (".kiro/steering/sprue.md", ".kiro/steering/sprue.md"),
+    (".cursor/rules/sprue.mdc", ".cursor/rules/sprue.mdc"),
+    (".github/copilot-instructions.md", ".github/copilot-instructions.md"),
+    (".windsurf/rules/sprue.md", ".windsurf/rules/sprue.md"),
+    (".clinerules/sprue.md", ".clinerules/sprue.md"),
+    (".roo/rules/sprue.md", ".roo/rules/sprue.md"),
+    (".aiassistant/rules/sprue.md", ".aiassistant/rules/sprue.md"),
 )
 
 
@@ -105,6 +119,14 @@ def init(directory: str, identity: str | None, force: bool) -> None:
             dest = target / dest_rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_text(rendered)
+
+        # --- Copy tool-specific hook shims (static, no rendering) ---
+        for src_path, dest_rel in _HOOK_MAP:
+            src_file = templates_dir / src_path
+            if src_file.exists():
+                dest = target / dest_rel
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_text(src_file.read_text())
 
     # --- Write .sprue-version ---
     (dot_sprue / ".sprue-version").write_text(sprue.__version__)
