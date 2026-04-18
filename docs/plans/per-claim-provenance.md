@@ -95,7 +95,14 @@ Implement per-claim source attribution across the Sprue engine, enabling every v
 - [x] T5.1: Update query protocol with provenance-check plan → `src/sprue/engine/protocols/query.md` ✔
   - Add provenance-check query plan pattern
   - Surface source quality in query responses
-- [ ] T5.2: End-to-end test: compile sourced page → verify → query provenance (deferred — requires live KB instance)
+- [x] T5.2: End-to-end test: compile sourced page → verify → query provenance ✔
+  - Tested with temporary KB instance (`sprue init`)
+  - Claims coverage: 75% (3/4) correctly reported, advisory pass
+  - Build index: by-source-url.yaml generated with 1 URL, 3 claims
+  - Claim→source query: returns tier, URL, excerpt, date (human + JSON)
+  - Source→pages query: returns citing page with claim IDs (human + JSON)
+  - Health check: correctly skips when disabled
+  - Bug fix: normalized dict-keyed verifications.yaml in query-provenance.py and build-index.py
 - [x] T5.3: Update AGENTS.md next ADR number and repo map counts → `AGENTS.md` ✔
 
 ## Non-Goals
