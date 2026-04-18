@@ -25,6 +25,17 @@ def _load(path: Path):
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
+def _load_ledger(path: Path):
+    """Load verifications ledger, normalizing dict-keyed format to list."""
+    raw = _load(path)
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return [{"page": slug, **data} for slug, data in raw.items()
+                if isinstance(data, dict)]
+    return raw if isinstance(raw, list) else []
+
+
 def _fail(msg: str, as_json: bool, code: int = 1) -> int:
     if as_json:
         print(json.dumps({"error": msg}))
@@ -35,7 +46,7 @@ def _fail(msg: str, as_json: bool, code: int = 1) -> int:
 
 def query_claim(page: str, claim_id: str) -> dict | None:
     """Look up a single claim from the verification ledger."""
-    entries = _load(VERIFICATIONS_PATH)
+    entries = _load_ledger(VERIFICATIONS_PATH)
     if not entries:
         return None
     for entry in reversed(entries):  # newest-first; latest is authoritative
