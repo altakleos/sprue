@@ -298,13 +298,28 @@ Design docs use a lightweight format: YAML frontmatter (`status`, `date`), then 
 
 ## When to Write an ADR
 
-An ADR is warranted when:
+ADRs come in two weights (see ADR-0035):
 
-- The decision has genuine alternatives — if there is only one reasonable choice, no ADR needed.
-- A future reader might ask "why was it done this way?" and not find the answer in the code or design doc.
+### Full ADR (~40 lines)
+
+Use when the decision changes the **model** — new architecture, new enforcement philosophy, genuine debate with multiple viable alternatives. Format: YAML frontmatter (`status`, `date`), then Context, Decision, Alternatives Considered, Consequences, optional Config Impact.
+
+Warranted when:
+- The decision has genuine alternatives that were debated.
+- A future reader might ask "why was it done this way?" and need a full narrative.
 - The decision constrains future work (establishing an invariant, choosing a data format, picking an architecture pattern).
 - The decision was debated or reversed a previous approach.
 
-An ADR is NOT needed for: bug fixes, threshold tuning, documentation improvements, adding a new page type that follows existing patterns, routine protocol updates.
+### ADR-lite (~12 lines)
 
-Follow the established format in `docs/decisions/`: YAML frontmatter (`status`, `date`), then Context, Decision, Alternatives Considered, Consequences, optional Config Impact.
+Use when the decision changes **behavior within an existing model** — gate changes, default changes, boundary changes. Format: YAML frontmatter (`status`, `date`, `weight: lite`, `protocols: [names]`), then three fields: Decision, Why, Alternative.
+
+Concrete triggers (any one):
+1. Changes a human approval gate (adds, removes, or bypasses).
+2. Changes a default that alters out-of-box behavior.
+3. Moves something from blocked to allowed (or vice versa).
+4. Introduces a config knob whose existence encodes a design choice.
+
+### No ADR needed
+
+Bug fixes, threshold tuning, documentation improvements, presentation/formatting changes, adding a new page type that follows existing patterns, routine protocol updates with no meaningful alternative.
