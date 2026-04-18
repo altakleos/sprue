@@ -26,6 +26,7 @@ _TEMPLATE_MAP = (
     ("identity.md", "instance/identity.md"),
     ("config.yaml", "instance/config.yaml"),
     ("entity-types.yaml", "instance/entity-types.yaml"),
+    ("memory/rules.yaml", "memory/rules.yaml"),
 )
 
 # Tool-specific agent hook shims: (source path in templates, destination).

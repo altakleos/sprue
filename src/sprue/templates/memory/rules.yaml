@@ -1,0 +1,3 @@
+- name: claims-coverage
+  command: ["python3", ".sprue/scripts/check-claims-coverage.py", "--quiet"]
+  scope: whole

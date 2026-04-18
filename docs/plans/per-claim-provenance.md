@@ -60,26 +60,26 @@ Implement per-claim source attribution across the Sprue engine, enabling every v
 - [x] T1.3: Add cite-then-claim to compile protocol → `src/sprue/engine/protocols/compile.md` ✔
 - [x] T1.4: Wire ADR references in design docs → `docs/design/source-authority-model.md`, `docs/design/confidence-state-machine.md` ✔
 
-### Phase 2 — Query & Index Infrastructure (TODO)
+### Phase 2 — Query & Index Infrastructure (DONE)
 
-- [ ] T2.1: Create query-provenance.py script → `src/sprue/engine/scripts/query-provenance.py`
+- [x] T2.1: Create query-provenance.py script → `src/sprue/engine/scripts/query-provenance.py` ✔
   - Claim→source query: input (page slug, claim ID), output (tier, URL, excerpt, date)
   - Source→pages reverse lookup: input (source URL), output (page slugs with claim IDs)
   - `--json` output flag
-- [ ] T2.2: Extend build-index.py to generate by-source-url.yaml → `src/sprue/engine/scripts/build-index.py`
+- [x] T2.2: Extend build-index.py to generate by-source-url.yaml → `src/sprue/engine/scripts/build-index.py` ✔
   - Reverse index from source URLs to citing pages
   - Generated during index rebuild
-- [ ] T2.3: Create compile-attributed.md prompt template → `src/sprue/engine/prompts/compile-attributed.md`
+- [x] T2.3: Create compile-attributed.md prompt template → `src/sprue/engine/prompts/compile-attributed.md` ✔
   - Guides cite-then-claim constrained generation
   - Select excerpt → generate claim → insert marker → repeat
 
-### Phase 3 — Validators (TODO)
+### Phase 3 — Validators (DONE)
 
-- [ ] T3.1: Create check-claims-coverage.py validator → `src/sprue/engine/scripts/check-claims-coverage.py`
+- [x] T3.1: Create check-claims-coverage.py validator → `src/sprue/engine/scripts/check-claims-coverage.py` ✔
   - Checks % of verifiable claims with `[^src-N]` markers
   - Advisory when `config.source_authority.enforce_claims` is false
   - Fails when enforce_claims is true and coverage < `config.source_authority.enforce_coverage_threshold`
-- [ ] T3.2: Register check-claims-coverage in rules.yaml template → `src/sprue/templates/memory/rules.yaml` (depends: T3.1)
+- [x] T3.2: Register check-claims-coverage in rules.yaml template → `src/sprue/templates/memory/rules.yaml` ✔
 
 ### Phase 4 — Source Health Monitoring (TODO, independent track)
 
