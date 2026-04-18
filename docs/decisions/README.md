@@ -40,3 +40,8 @@ Platform decisions in chronological order. Each ADR captures the context, decisi
 | 0032 | [Fresh Repo for Sprue Platform — No History Carry-Over](0032-fresh-repo-no-history.md) | accepted |
 | 0033 | [Sprue Distribution Model — pip + Local Engine Copy](0033-sprue-distribution-model.md) | accepted |
 | 0034 | [Tool-Specific Agent Hook Files](0034-tool-specific-agent-hooks.md) | accepted |
+| 0035 | [ADR-Lite Format for Protocol Behavioral Changes](0035-adr-lite-format.md) | accepted |
+| 0036 | [Compile Executes Approved Batch Without Per-Page Pauses](0036-compile-batch-execution.md) | accepted (lite) |
+| 0037 | [Scoped Expand Skips the Topic Approval Gate](0037-scoped-expand-skips-topic-gate.md) | accepted (lite) |
+| 0038 | [Expand Defaults to Semi Mode](0038-expand-default-semi-mode.md) | accepted (lite) |
+| 0039 | [Soften Facet Gate to Scoring Penalty with Deepen/Broaden Split](0039-soften-facet-gate-deepen-broaden.md) | accepted (lite) |
