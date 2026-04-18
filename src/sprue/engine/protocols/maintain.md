@@ -2,7 +2,7 @@
 
 *Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
-**Usage:** Run with a parameter: `lint` | `verify` | `rebuild-index` | `upgrade` | `reorganize` | `full`
+**Usage:** Run with a parameter: `lint` | `verify` | `rebuild-index` | `upgrade` | `reorganize` | `source-health` | `full`
 
 ---
 
@@ -125,17 +125,30 @@ Then analyze the full wiki structure. Produce a proposal covering:
 
 ---
 
+## source-health
+
+**Fully autonomous. Skipped when `config.source_authority.health_check.enabled` is false.**
+
+1. Run `python3 .sprue/scripts/check-source-health.py` from the repo root. The script checks URL liveness for registry and claim URLs and writes results to `instance/state/source-health.yaml`.
+2. Read the health ledger. Count sources by status: `live`, `dead`, `redirected`.
+3. Include counts in the maintenance report: "Source health: N healthy, N gone, N redirected."
+4. Flag pages whose sources are `dead` or `redirected` for re-import and re-verification. Present the list — do not act on them during maintenance.
+5. Log the health check run to `memory/log.jsonl`.
+
+---
+
 ## full
 
 Execute in order:
 
 1. `lint` → auto-fix obvious issues, present ambiguous items
 2. `verify` → extract claims, fetch sources, fix contradicted claims with evidence
-3. `rebuild-index` → autonomous
-4. `upgrade` → auto-upgrade low-risk items, present higher-risk items
-5. **Single approval gate** → human reviews all pending items from lint + upgrade at once
-6. Execute approved items
-7. `reorganize` → present proposal → separate approval (structural changes are high-risk)
+3. `source-health` → check source URL liveness (skipped if disabled in config)
+4. `rebuild-index` → autonomous
+5. `upgrade` → auto-upgrade low-risk items, present higher-risk items
+6. **Single approval gate** → human reviews all pending items from lint + upgrade at once
+7. Execute approved items
+8. `reorganize` → present proposal → separate approval (structural changes are high-risk)
 
 ---
 
