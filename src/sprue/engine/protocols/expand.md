@@ -76,23 +76,27 @@ Score each candidate on 3 dimensions:
 
 Present the results as a ranked table split into three sections — enhance-flagged gaps first, then **Deepen** (candidates that strengthen existing clusters, sharing `min_shared_facets`+ facet values), then **Broaden** (candidates that open new territory within the identity's scope, below the facet threshold). This split makes both pools visible so the user can make an informed choice between depth and breadth.
 
+Include a **Facets** column showing how many facet values the candidate shares with existing content (e.g., `2/3`). This makes the Deepen/Broaden classification self-explanatory.
+
+Include a **one-line rationale** per candidate — the single most important reason for its score. Do NOT write multi-paragraph explanations.
+
 ```
  ── Enhance-flagged gaps (from enhance run YYYY-MM-DD) ────────────────────
- #   Topic                    Type        Dir             Signal              Score
- E1  grpc-load-balancing      concept     networking/     enhance: Graph      0.91
- E2  kafka-exactly-once       concept     data/           enhance: Content    0.87
+ #   Topic                    Type        Dir             Facets  Signal              Score
+ E1  grpc-load-balancing      concept     networking/     2/3     enhance: Graph      0.91
+ E2  kafka-exactly-once       concept     data/           3/3     enhance: Content    0.87
 
  ── Deepen (strengthen existing clusters) ─────────────────────────────────
- 1   flink-checkpointing      concept     data/           dangling link       0.92
- 2   kafka-streams-vs-flink   comparison  architecture/   missing comparison  0.88
- 3   circuit-breaker-overhead  recipe      architecture/   conflict follow-up  0.85
+ 1   flink-checkpointing      concept     data/           2/3     dangling link       0.92
+ 2   kafka-streams-vs-flink   comparison  architecture/   2/3     missing comparison  0.88
+ 3   circuit-breaker-overhead  recipe      architecture/   1/3     conflict follow-up  0.85
 
  ── Broaden (new territory within identity scope) ─────────────────────────
- 4   service-mesh-overview    concept     networking/     cluster edge        0.68
- 5   wasm-runtimes            concept     compute/        online research     0.62
+ 4   service-mesh-overview    concept     networking/     0/3     cluster edge        0.68
+ 5   wasm-runtimes            concept     compute/        0/3     online research     0.62
  ...
- ─   ──────────────────────   ─────────   ──────────────  ──────────────────  ─────
- ×   kubernetes-basics        concept     infra/          cluster edge        0.45  REJECTED: below audience bar
+ ─   ──────────────────────   ─────────   ──────────────  ─────   ──────────────────  ─────
+ ×   kubernetes-basics        concept     infra/          0/3     cluster edge        0.45  REJECTED: below audience bar
 ```
 
 **STOP. Wait for approval.** Accept: `all`, `1,3,E1`, `all except E2,4`, `none`.
