@@ -42,7 +42,40 @@ bash src/sprue/engine/reset.sh --level soft|standard|hard              # dry-run
 bash src/sprue/engine/reset.sh --level soft|standard|hard --confirm    # execute
 ```
 
+### Publish Workflow
+
+When the user says "publish", execute this end-to-end without prompting:
+
+1. Bump version in `src/sprue/__init__.py` (e.g., 0.1.15a1 → 0.1.16a1).
+2. Run `pytest -v -m "not slow"` to verify.
+3. Build wheel: `python3 -m build --wheel` then `python3 src/sprue/engine/scripts/check-package-contents.py`.
+4. Commit: `git commit -am "Bump version to X"` and `git push`.
+5. Tag: `git tag vX && git push origin vX` — triggers the Release workflow.
+6. Wait ~15s, then check: `gh run list --limit 2`.
+7. The `publish` job requires environment approval. Approve it:
+   ```
+   gh api repos/altakleos/sprue/actions/runs/<RUN_ID>/pending_deployments
+   ```
+   Extract the environment ID, then:
+   ```
+   gh api repos/altakleos/sprue/actions/runs/<RUN_ID>/pending_deployments \
+     --method POST \
+     --field 'environment_ids[]=<ENV_ID>' \
+     --field 'state=approved' \
+     --field 'comment=<version>: <summary>'
+   ```
+8. Poll until publish completes: `gh run view <RUN_ID> --json jobs --jq '.jobs[] | {name, status, conclusion}'`
+9. If the release fails: delete the tag (`git tag -d vX && git push origin --delete vX`), fix the issue, retag, and repeat from step 5.
+10. Confirm: `pip install sprue==X --pre` or check PyPI.
+
 ## Task Routing
+
+### Layer Gate (MANDATORY before writing code)
+
+- Before modifying any file in `src/`, check: does a plan exist in `docs/plans/` for this work?
+- If the task touches 3+ files or spans multiple layers → a plan is REQUIRED.
+- If no plan exists → create one first, following the template in `docs/plans/README.md`.
+- If a plan exists → read it, confirm which phase/task you are executing, and update it when done.
 
 ### Adding or Changing a Product Guarantee
 
