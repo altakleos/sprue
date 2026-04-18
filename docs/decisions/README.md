@@ -45,3 +45,6 @@ Platform decisions in chronological order. Each ADR captures the context, decisi
 | 0037 | [Scoped Expand Skips the Topic Approval Gate](0037-scoped-expand-skips-topic-gate.md) | accepted (lite) |
 | 0038 | [Expand Defaults to Semi Mode](0038-expand-default-semi-mode.md) | accepted (lite) |
 | 0039 | [Soften Facet Gate to Scoring Penalty with Deepen/Broaden Split](0039-soften-facet-gate-deepen-broaden.md) | accepted (lite) |
+| 0040 | [Cite-Then-Claim Generation at Compile Time](0040-cite-then-claim-generation.md) | accepted |
+| 0041 | [Extend verification ledger with per-claim source fields](0041-extend-verification-ledger-per-claim-source-fields.md) | accepted (lite) |
+| 0042 | [Dead sources boost verification priority, not downgrade confidence](0042-dead-sources-boost-verification-priority.md) | accepted (lite) |
