@@ -1,0 +1,13 @@
+# Entity type registry — maps topic slugs to ontological kinds.
+# Populated during compile as entity pages are created.
+# See .sprue/engine.md for the entity type system.
+
+entities: {}
+
+# Relationship types — defines allowed relationship kinds between entities.
+# Example:
+#   relationship_types:
+#     - name: depends_on
+#       display: "Depends on"
+#       description: "Runtime or build dependency"
+relationship_types: []

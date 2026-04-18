@@ -25,6 +25,7 @@ _TEMPLATE_MAP = (
     (".gitignore", ".gitignore"),
     ("identity.md", "instance/identity.md"),
     ("config.yaml", "instance/config.yaml"),
+    ("entity-types.yaml", "instance/entity-types.yaml"),
 )
 
 # Tool-specific agent hook shims: (source path in templates, destination).
