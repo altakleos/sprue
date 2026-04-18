@@ -36,6 +36,21 @@ python3 .sprue/scripts/semantic-search.py "query" [--top N] [--threshold F] [--j
 
 For common multi-hop questions: read `wiki/.index/query-plans.yaml` for curated reading paths. Match the user's question to a plan pattern, then read the `core_pages` + relevant `conditional_pages`.
 
+## Provenance Check
+
+When the user asks where a fact came from or what the source is for a specific claim, run a provenance query instead of searching the wiki.
+
+1. Identify the page slug and claim ID (the `[^src-N]` marker on the claim)
+2. Run `python3 .sprue/scripts/query-provenance.py --page <slug> --claim-id <id> --json`
+3. Surface the `source_chain.tier`, `source_chain.source_url`, `source_chain.excerpt`, and `verification.verified_at` in the response
+4. If no claim ID is visible, use `--page <slug> --all` and match by claim text
+
+Trigger phrases: "where did this fact come from?", "what's the source for X?", "how was this verified?"
+
+## Source Quality in Responses
+
+When answering any question, include the source tier and verification date if the cited page has them. Pages with `source_quality: official` carry more weight than `source_quality: blog`. If `claims_unverifiable > 0`, note that some claims on the page lack external sourcing.
+
 ## Web Fetching
 
 When you need to fetch content from a URL and direct fetching fails, use these workarounds in order:

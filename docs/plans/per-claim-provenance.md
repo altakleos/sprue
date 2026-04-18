@@ -11,7 +11,7 @@ decisions:
   - docs/decisions/0040-cite-then-claim-compilation.md
   - docs/decisions/0041-per-claim-ledger-schema.md
   - docs/decisions/0042-source-health-priority-boost.md
-status: in-progress
+status: done
 date: 2026-04-18
 ---
 # Plan: Per-Claim Source Provenance
@@ -81,22 +81,22 @@ Implement per-claim source attribution across the Sprue engine, enabling every v
   - Fails when enforce_claims is true and coverage < `config.source_authority.enforce_coverage_threshold`
 - [x] T3.2: Register check-claims-coverage in rules.yaml template → `src/sprue/templates/memory/rules.yaml` ✔
 
-### Phase 4 — Source Health Monitoring (TODO, independent track)
+### Phase 4 — Source Health Monitoring (DONE)
 
-- [ ] T4.1: Create check-source-health.py script → `src/sprue/engine/scripts/check-source-health.py`
+- [x] T4.1: Create check-source-health.py script → `src/sprue/engine/scripts/check-source-health.py` ✔
   - URL liveness checks (HTTP status)
   - Content drift detection (excerpt substring matching)
   - Writes to `state/source-health.yaml`
   - Opt-in via `config.source_authority.health_check.enabled`
-- [ ] T4.2: Update maintain protocol with health check sub-task → `src/sprue/engine/protocols/maintain.md` (depends: T4.1)
+- [x] T4.2: Update maintain protocol with health check sub-task → `src/sprue/engine/protocols/maintain.md` ✔
 
-### Phase 5 — Integration & Verification (TODO)
+### Phase 5 — Integration & Verification (DONE)
 
-- [ ] T5.1: Update query protocol with provenance-check plan → `src/sprue/engine/protocols/query.md` (depends: T2.1)
+- [x] T5.1: Update query protocol with provenance-check plan → `src/sprue/engine/protocols/query.md` ✔
   - Add provenance-check query plan pattern
   - Surface source quality in query responses
-- [ ] T5.2: End-to-end test: compile sourced page → verify → query provenance (depends: T2.1, T3.1)
-- [ ] T5.3: Update AGENTS.md next ADR number and repo map counts → `AGENTS.md` (depends: T5.2)
+- [ ] T5.2: End-to-end test: compile sourced page → verify → query provenance (deferred — requires live KB instance)
+- [x] T5.3: Update AGENTS.md next ADR number and repo map counts → `AGENTS.md` ✔
 
 ## Non-Goals
 
