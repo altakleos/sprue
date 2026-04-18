@@ -185,8 +185,8 @@ docs/
   development-process.md           ← authoritative 6-layer stack reference
   specs/          (8 specs)        ← product intent and invariants
   design/         (8 docs)         ← technical architecture
-  decisions/      (33 ADRs)        ← decision records (immutable, next: 0034)
-  plans/          (template only)  ← feature task breakdowns
+  decisions/      (42 ADRs)        ← decision records (immutable, next: 0043)
+  plans/          (3 plans)        ← feature task breakdowns
 src/sprue/                         ← Python package root
   __init__.py                      ← version string (single source of truth)
   engine_root.py                   ← resolves engine path at runtime
@@ -196,8 +196,8 @@ src/sprue/                         ← Python package root
     README.md                      ← platform guide
     defaults.yaml                  ← all tunables with defaults
     protocols/    (15 files)       ← prose code (LLM-executable)
-    scripts/      (21 files)       ← Python validators and utilities
-    prompts/      (10 files)       ← prompt templates
+    scripts/      (25 files)       ← Python validators and utilities
+    prompts/      (11 files)       ← prompt templates
     schemas/                       ← pipeline schemas
     profiles/                      ← compile profiles
     verify.sh                      ← test suite runner (thin wrapper → verify.py)
