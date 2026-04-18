@@ -253,6 +253,24 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         if temp_dir and Path(temp_dir).exists():
             shutil.rmtree(temp_dir, ignore_errors=True)
 
+    # --- Create missing tool-hook shims (additive only, never overwrites) ---
+    try:
+        with ExitStack() as stack:
+            tpl_dir = stack.enter_context(
+                resources.as_file(resources.files("sprue.templates"))
+            )
+            from sprue.cli.init import _HOOK_MAP
+
+            for src_path, dest_rel in _HOOK_MAP:
+                dest = dir_path / dest_rel
+                if not dest.exists():
+                    src_file = tpl_dir / src_path
+                    if src_file.exists():
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_text(src_file.read_text())
+    except Exception:
+        pass  # Best-effort; don't fail upgrade over shim creation.
+
     # --- Success ---
     click.echo(f"Upgraded {dir_path}")
     click.echo(f"  {old_version} → {new_version}")
