@@ -63,7 +63,7 @@ bash src/sprue/engine/reset.sh --level soft|standard|hard --confirm    # execute
 ### Recording a Decision
 
 - **Prerequisite:** A design doc or spec the decision relates to, OR a genuine choice with viable alternatives.
-- **Start at:** `docs/decisions/` — create `0034-<slug>.md` (next number: **0034**)
+- **Start at:** `docs/decisions/` — create `0035-<slug>.md` (next number: **0035**)
 - **Then:** Use established format: YAML frontmatter (`status`, `date`), Context, Decision, Alternatives Considered, Consequences, optional Config Impact
 - **After:** `sprue verify`
 - **See:** [docs/decisions/README.md](docs/decisions/README.md)
