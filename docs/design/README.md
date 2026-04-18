@@ -4,13 +4,13 @@ Technical architecture for the platform. Each design doc describes a high-level 
 
 For the full development model, see `docs/development-process.md`.
 
-| # | Design | Status |
-|---|--------|--------|
-| 1 | [Prose-as-Code Execution Model](prose-as-code.md) | accepted |
-| 2 | [Three-Command Pipeline](three-command-pipeline.md) | accepted |
-| 3 | [Append-Only State Model](append-only-state.md) | accepted |
-| 4 | [Source Authority Model](source-authority-model.md) | accepted |
-| 5 | [Confidence State Machine](confidence-state-machine.md) | accepted |
-| 6 | [Agent Memory and Learning](agent-memory.md) | accepted |
-| 7 | [Plans Layer](plans-layer.md) | accepted |
-| 8 | [Sprue Distribution Model](sprue-distribution.md) | accepted |
+| # | Design | Description | Status |
+|---|--------|-------------|--------|
+| 1 | [Prose-as-Code Execution Model](prose-as-code.md) | Markdown protocols as executable code interpreted by an LLM runtime | accepted |
+| 2 | [Three-Command Pipeline](three-command-pipeline.md) | Import, Compile, Expand — each command owns exactly one boundary | accepted |
+| 3 | [Append-Only State Model](append-only-state.md) | Append-only YAML ledgers for auditable, crash-safe state tracking | accepted |
+| 4 | [Source Authority Model](source-authority-model.md) | Tiered source authority, per-claim verification ledger, provenance query interface, and cite-then-claim generation | accepted |
+| 5 | [Confidence State Machine](confidence-state-machine.md) | Confidence states, decay model, verification prioritization, and source health monitoring | accepted |
+| 6 | [Agent Memory and Learning](agent-memory.md) | Structured rules and tracked corrections for cross-session learning | accepted |
+| 7 | [Plans Layer](plans-layer.md) | Task breakdowns bridging design to implementation | accepted |
+| 8 | [Sprue Distribution Model](sprue-distribution.md) | Pip-installable package with CLI scaffolding and local engine copy | accepted |

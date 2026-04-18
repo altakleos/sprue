@@ -13,6 +13,10 @@ proposes fixes for stale or wrong content, and updates verification state.
 **Key difference from maintain:** Maintain is janitorial (lint, broken links, frontmatter).
 Verify is epistemic — it checks whether the *content* is true.
 
+**Per-claim source attribution:** Every verification run produces per-claim source
+records in the ledger and inline citation markers in the page body. This is the
+standard workflow for all modes — not limited to adversarial. See ADR-0041.
+
 ---
 
 ## Prerequisites
@@ -107,6 +111,11 @@ Read the full wiki page content.
 Read the raw file(s) from Phase 2a.
 
 ### Step 3c: Extract verifiable claims
+
+Assign each extracted claim a stable identifier `src-N` (sequential per page,
+starting from 1, based on claim position in the page body). The prefix is
+`config.source_authority.markers.prefix` (default `src-`). These identifiers
+persist through the ledger and inline markers.
 
 Identify claims that are potentially checkable:
 
@@ -286,6 +295,29 @@ After all fixes applied:
 
 - Set `last_verified: YYYY-MM-DD` (today's date)
 - Adjust `confidence` per the criteria in Step 3 → Confidence upgrade criteria
+- Set `source_quality`: the dominant source tier across all claims (e.g., `official`,
+  `community`). Use the tier names from `config.source_authority.quality_tiers`.
+  Pick the highest tier that sourced at least one claim. Null until first verification.
+- Set `claims_verified`: count of claims that have a `source_ref` or `source_url`
+- Set `claims_unverifiable`: count of hard-fact claims marked `unverifiable`.
+  `claims_unverifiable > 0` blocks promotion to `confidence: high`.
+
+### Insert inline citation markers
+
+For each claim that has a `source_url` or `source_ref`, insert a footnote marker
+after the claim text in the page body using the format from
+`config.source_authority.markers.style` (default: `[^src-N]`). Do NOT insert
+markers for claims without source attribution (unverifiable claims get no marker).
+
+Append or update a `## Sources` heading (using `config.source_authority.markers.footnote_heading`)
+at the end of the page containing footnote definitions:
+
+```markdown
+[^src-1]: <source_excerpt> — <source_url or source_ref>
+```
+
+A re-verification replaces all existing markers and the Sources section with the
+latest run's identifiers. Old markers do not accumulate.
 
 ### Update state ledger
 
@@ -313,20 +345,30 @@ Append to `instance/state/verifications.yaml`:
       new: "correct claim"
       error_type: <type>
   priority_score: N.N
-  # Adversarial-mode fields (omit when not used):
-  claims:                                   # per-claim audit trail
-    - claim: "<verbatim claim text>"
+  claims:                                   # per-claim audit trail — ALWAYS written (all modes)
+    - id: src-1                             # stable marker matching [^src-1] in body
+      claim: "<verbatim claim text>"
       source_tier_used: raw | sources.yaml | web | training
+      source_ref: <raw file path>           # optional — path to raw file used
+      source_url: <authoritative URL>       # optional — URL that confirmed the claim
+      source_excerpt: "<1-2 sentence quote>" # optional — specific text from source
+      excerpt_hash: "sha256:<hash>"         # optional — SHA-256 of source_excerpt for drift detection
       writer_verdict: confirmed | stale | wrong | unverifiable
+      final_verdict: <the operative one>
+      # Adversarial-mode fields (omit when not used):
       critic_invoked: true | false
       critic_verdict: <same set> | cannot_rebut | needs_more_sources | null
       judge_invoked: true | false
       judge_verdict: <same set> | null
-      final_verdict: <the operative one>
-  promotion_blocked_by_critic: N            # count of claims where judge ruled against writer and that prevented/downgraded a promotion
+  promotion_blocked_by_critic: N            # adversarial only — count of claims where judge ruled against writer and that prevented/downgraded a promotion
 ```
 
-The `claims:` block and `promotion_blocked_by_critic` counter are populated only when adversarial mode was used. Older entries without these fields parse cleanly — the schema is additive.
+The `claims:` block is written in ALL modes (standard, semi, auto, adversarial). In
+non-adversarial modes, omit the adversarial fields (`critic_invoked`, `critic_verdict`,
+`judge_invoked`, `judge_verdict`). The per-claim source fields (`id`, `source_ref`,
+`source_url`, `source_excerpt`, `excerpt_hash`) are always populated when available.
+`promotion_blocked_by_critic` is written only in adversarial mode. Older entries
+without these fields parse cleanly — the schema is additive.
 
 ### Update memory log
 

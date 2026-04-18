@@ -1,6 +1,6 @@
 ---
 status: accepted
-date: 2026-04-16
+date: 2026-04-18
 ---
 # Continuous Quality
 
@@ -17,6 +17,7 @@ Content quality is continuously monitored, measured, and maintained. The platfor
 - Verification is source-backed. No verdict is issued without a specific source excerpt supporting it. When all source tiers are exhausted, the claim is marked unverifiable rather than guessed at.
 - Summaries capture page intent accurately, enabling effective retrieval and triage without reading the full page.
 - Quality degradation is detected automatically and queued for remediation. The operator does not need to manually audit pages for staleness.
+- Source health monitoring — authoritative URLs referenced in page `sources` fields and `instance/sources.yaml` are periodically checked for liveness and content drift. Dead or significantly drifted sources are flagged for re-import. Source health status is surfaced in maintenance reports.
 
 ## Rationale
 
@@ -28,10 +29,11 @@ The combination of earned confidence, domain-aware decay, and source-backed veri
 
 ## Design
 
-- [Confidence State Machine](../design/confidence-state-machine.md) — operational confidence driven by verification, decay tiers
+- [Confidence State Machine](../design/confidence-state-machine.md) — operational confidence driven by verification, decay tiers, and source health monitoring
 
 ## Decisions
 
 - [ADR-0009: Verification Pipeline](../decisions/0009-verification-pipeline.md) — adversarial writer/critic/judge model with source-backed fact-checking
 - [ADR-0015: Content Quality Model](../decisions/0015-content-quality-model.md) — confidence levels, decay tiers, self-healing
 - [ADR-0025: Schema Versioning](../decisions/0025-schema-versioning.md) — tracking frontmatter evolution for incremental migration
+- Source health monitoring was relocated here from the source-authority-pipeline spec (2026-04-18) because it is an operational quality concern — monitoring source freshness — rather than a provenance concern.

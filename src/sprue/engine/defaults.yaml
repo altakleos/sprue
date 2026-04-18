@@ -394,3 +394,34 @@ approval:
 # ── Editorial Overrides ───────────────────────────────────────────────────
 # Facet value normalization. Instance-specific — default is empty.
 overrides: {}
+
+# ── Source Authority ──────────────────────────────────────────────────────
+# Per-claim provenance, source quality ranking, and health monitoring.
+# Referenced by: verify protocol, compile protocol, maintain protocol.
+
+source_authority:
+  # Ordered list of source quality tiers, highest authority first.
+  # Used in verification verdicts and query responses.
+  quality_tiers:
+    - official                  # Official documentation, RFCs, standards
+    - vendor                    # Vendor docs, release notes
+    - academic                  # Peer-reviewed papers, textbooks
+    - community                 # Community wikis, Stack Overflow, forums
+    - blog                      # Blog posts, tutorials, opinion pieces
+    - training                  # LLM training knowledge (last resort)
+
+  # Inline citation markers in wiki page body text.
+  markers:
+    style: footnote             # [^src-N] format
+    prefix: "src"               # Marker prefix (produces [^src-1], [^src-2], ...)
+
+  # Per-claim attribution enforcement.
+  enforce_claims: false         # When true, check-claims-coverage.py fails on low coverage
+  enforce_coverage_threshold: 0.8  # Minimum fraction of verifiable claims with markers
+
+  # Source health monitoring (opt-in).
+  health_check:
+    enabled: false              # Enable periodic URL liveness and drift checks
+    interval_days: 30           # Days between health checks per URL
+    timeout_seconds: 10         # HTTP request timeout
+    drift_threshold: 0.3        # Content similarity below this triggers drift alert (0.0-1.0)
