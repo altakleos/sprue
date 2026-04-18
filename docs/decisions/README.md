@@ -39,3 +39,4 @@ Platform decisions in chronological order. Each ADR captures the context, decisi
 | 0031 | [Product Name — Sprue](0031-product-name-sprue.md) | accepted |
 | 0032 | [Fresh Repo for Sprue Platform — No History Carry-Over](0032-fresh-repo-no-history.md) | accepted |
 | 0033 | [Sprue Distribution Model — pip + Local Engine Copy](0033-sprue-distribution-model.md) | accepted |
+| 0034 | [Tool-Specific Agent Hook Files](0034-tool-specific-agent-hooks.md) | accepted |
