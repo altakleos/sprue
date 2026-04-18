@@ -14,10 +14,12 @@ def main() -> None:
 from sprue.cli.init import init
 from sprue.cli.upgrade import upgrade
 from sprue.cli.verify import verify as verify_cmd
+from sprue.cli.hooks import hooks
 
 main.add_command(init)
 main.add_command(upgrade)
 main.add_command(verify_cmd)
+main.add_command(hooks)
 
 
 if __name__ == "__main__":
