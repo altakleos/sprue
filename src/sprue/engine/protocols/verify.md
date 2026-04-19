@@ -212,6 +212,31 @@ After sourcing, assign a verdict:
 - Never flag opinions or architectural recommendations as "wrong"
 - Hedged claims ("often", "typically") get more latitude than absolute claims
 
+### Image-Sourced Claims
+
+A claim is image-sourced when its ledger entry has a `source_media` field starting
+with `image/`. The `source_ref` is a path into `raw/assets/`. Apply the following
+rules based on `extraction_confidence`:
+
+- **`high`:** Writer assessment is sufficient to `confirmed`. Do NOT invoke the
+  adversarial critic/judge loop unless the page has `risk_tier: critical`.
+- **`medium`:** Confirm provisionally. If a text source (Tier 2 or Tier 3) also
+  corroborates the claim, record both in the verification entry. If no text source
+  corroborates, the claim remains `confirmed` at medium confidence but is flagged
+  for reviewer attention. Does not block confidence promotion unless
+  `risk_tier: critical`.
+- **`low`:** The image alone is insufficient. The claim MUST be corroborated by a
+  text source (Tier 2 or Tier 3) to receive `confirmed`. Uncorroborated `low`
+  claims are marked `unverifiable` and block confidence promotion to `high`.
+
+**Multimodal critic:** When `config.images.multimodal_available` is `true`, the
+adversarial critic CAN re-analyze the image independently, bringing image-sourced
+verification closer to the text equivalent. When `false`, the critic relies on the
+annotation's `description` and `evidence` fields as the only visual signal.
+
+**No image drift checking in v1.** Perceptual hashing for image content drift is
+deferred. `original_url` liveness participates in standard source health monitoring.
+
 ### Step 3f: Propose fixes
 
 For each `stale` or `wrong` claim:
