@@ -50,6 +50,33 @@ def _read_schema_window(path: Path) -> tuple[int, int] | None:
     return None
 
 
+def _merge_rules(instance_path: Path, template_path: Path) -> list[str]:
+    """Append rules from the template into the instance rules.yaml by name.
+
+    Preserves user-edited rules and ordering. Returns the list of rule names
+    that were added. Silently no-ops on parse errors (best-effort).
+    """
+    try:
+        instance_doc = yaml.safe_load(instance_path.read_text(encoding="utf-8")) or []
+        template_doc = yaml.safe_load(template_path.read_text(encoding="utf-8")) or []
+    except Exception:
+        return []
+    if not isinstance(instance_doc, list) or not isinstance(template_doc, list):
+        return []
+    existing_names = {r.get("name") for r in instance_doc if isinstance(r, dict)}
+    added: list[dict] = []
+    for rule in template_doc:
+        if isinstance(rule, dict) and rule.get("name") and rule["name"] not in existing_names:
+            added.append(rule)
+    if not added:
+        return []
+    # Preserve existing text; append YAML-formatted new rules with a blank line.
+    existing_text = instance_path.read_text(encoding="utf-8").rstrip()
+    appended = yaml.safe_dump(added, sort_keys=False, default_flow_style=False).rstrip()
+    instance_path.write_text(existing_text + "\n\n" + appended + "\n", encoding="utf-8")
+    return [r["name"] for r in added]
+
+
 def _sweep_stale_artifacts(dir_path: Path) -> None:
     """Remove leftover .sprue.old.* and tmp* dirs from a prior interrupted run.
 
@@ -281,6 +308,7 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         ("memory/rules.yaml", "memory/rules.yaml"),
     )
     installed: list[str] = []
+    merged_rules: list[str] = []
     try:
         with ExitStack() as stack:
             tpl_dir = stack.enter_context(
@@ -294,6 +322,12 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
                         dest.parent.mkdir(parents=True, exist_ok=True)
                         dest.write_text(src_file.read_text())
                         installed.append(dest_rel)
+                elif dest_rel == "memory/rules.yaml":
+                    # Merge new rules from the template into the existing
+                    # instance file by `name`. Preserves user edits and ordering.
+                    src_file = tpl_dir / src_path
+                    if src_file.exists():
+                        merged_rules = _merge_rules(dest, src_file)
     except Exception:
         pass  # Best-effort; don't fail upgrade over template install.
 
@@ -303,6 +337,8 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
     if installed:
         for path in installed:
             click.echo(f"  Installed: {path}")
+    if merged_rules:
+        click.echo(f"  Added rules to memory/rules.yaml: {', '.join(merged_rules)}")
     if schema_changed:
         click.echo(
             f"  Schema changed ({instance_schema} → {engine_schema}). "
