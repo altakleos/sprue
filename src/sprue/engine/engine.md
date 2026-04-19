@@ -8,7 +8,7 @@ Reusable platform rules for any LLM-maintained knowledge base. This file is the 
 
 > Architecture: [design/three-command-pipeline.md](design/three-command-pipeline.md), [design/append-only-state.md](design/append-only-state.md), [design/prose-as-code.md](design/prose-as-code.md)
 
-Six principles guide all architectural decisions:
+Seven principles guide all architectural decisions:
 
 1. **Three-command separation** — Import, Compile, and Expand own exactly one boundary each. No command crosses another's boundary.
 2. **Raw immutability** — Files in `raw/` are never modified after capture. No injected headers, no metadata, no frontmatter.

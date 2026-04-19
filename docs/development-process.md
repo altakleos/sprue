@@ -172,7 +172,7 @@ A plan is warranted when:
 
 A plan is NOT needed for: single-file bug fixes, config tuning, documentation improvements, or any change where the implementation is obvious from the design doc or ADR alone.
 
-Plans use a lightweight format: YAML frontmatter (`feature`, `status`, `date`), then sections for Tasks (ordered checklist with file paths), Dependencies (which tasks depend on others), and Acceptance Criteria. See `docs/plans/README.md` for the template.
+Plans use a lightweight format: YAML frontmatter (`feature`, `serves`, `design`, `status`, `date`), then sections for Tasks (ordered checklist with file paths and inline `(depends: T1)` annotations) and Acceptance Criteria. See `docs/plans/README.md` for the template.
 
 ## How Plans Are Executed
 
