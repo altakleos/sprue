@@ -162,6 +162,7 @@ def build_manifest():
             "risk_tier": fm.get("risk_tier", "reference"),
             "last_verified": fm.get("last_verified"),
             "provenance": fm.get("provenance", "unknown"),
+            "sources": fm.get("sources", []),
         }
 
         # Dynamically add each facet's values to the entry
