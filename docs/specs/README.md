@@ -12,5 +12,6 @@ For the full development model, see `docs/development-process.md`.
 | [Platform Reusability](platform-reusability.md) | accepted |
 | [Source-Grounded Knowledge](source-grounded-knowledge.md) | accepted |
 | [Platform Distribution](platform-distribution.md) | accepted |
-| [Per-Claim Source Provenance](source-authority-pipeline.md) | draft |
+| [Per-Claim Source Provenance](source-authority-pipeline.md) | accepted |
 | [Verified Knowledge Service](verified-knowledge-service.md) | draft |
+| [Visual Knowledge](visual-knowledge.md) | draft |
