@@ -1,3 +1,7 @@
 - name: claims-coverage
   command: ["python3", ".sprue/scripts/check-claims-coverage.py", "--quiet"]
   scope: whole
+
+- name: images-valid
+  command: ["python3", ".sprue/scripts/check-images.py", "--quiet"]
+  scope: whole
