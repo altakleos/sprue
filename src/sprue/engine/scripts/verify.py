@@ -162,7 +162,10 @@ def run_rule(rule: Rule, content_pages_full: list[str], target_file: Optional[st
         stdout = proc.stdout
         stderr = proc.stderr
 
-        if not stdout.strip() and not stderr.strip():
+        if proc.returncode == 0 and not stdout.strip() and not stderr.strip():
+            result = RuleResult(rule=rule, status="pass", duration_ms=duration_ms)
+        elif proc.returncode == 0 and stdout.strip() and not stderr.strip():
+            # Script exited clean but produced output — still a pass (advisory info)
             result = RuleResult(rule=rule, status="pass", duration_ms=duration_ms)
         elif not stdout.strip() and stderr.strip():
             result = RuleResult(
@@ -173,7 +176,10 @@ def run_rule(rule: Rule, content_pages_full: list[str], target_file: Optional[st
                 crashed=True,
             )
         else:
+            # Non-zero exit or stdout violations: this is a fail
             violations = [l for l in stdout.splitlines() if l.strip()]
+            if not violations and proc.returncode != 0:
+                violations = [f"rule exited with code {proc.returncode}"]
             result = RuleResult(
                 rule=rule,
                 status="fail",
