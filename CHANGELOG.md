@@ -67,4 +67,4 @@ Initial alpha release.
   prompts, schemas, profiles, defaults.yaml, engine.md).
 - `src/sprue/templates/` — instance scaffolding templates for
   `sprue init`.
-- `docs/` — six-layer stack artifacts (specs, design, decisions, plans).
+- `docs/` — SDD layer stack artifacts (specs, design, decisions, plans).

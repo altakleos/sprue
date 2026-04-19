@@ -2,7 +2,7 @@
 
 Reusable platform rules for any LLM-maintained knowledge base. This file is the same for every KB that uses this engine. Instance-specific configuration lives in `AGENTS.md`.
 
-> **Layering note:** This file is the LLM's operational reference — it restates product intent and architecture in actionable terms. The authoritative source of truth for product guarantees is `docs/specs/`; for technical architecture, `docs/design/`. Blockquote pointers throughout this file trace each section to its source. See `docs/development-process.md` for the full six-layer model.
+> **Layering note:** This file is the LLM's operational reference — it restates product intent and architecture in actionable terms. The authoritative source of truth for product guarantees is `docs/specs/`; for technical architecture, `docs/design/`. Blockquote pointers throughout this file trace each section to its source. See `docs/development-process.md` for the full SDD layer model.
 
 ## Design Principles
 
@@ -236,7 +236,7 @@ Bootstrap checklist — before every operation:
 | `.sprue/profiles/*.yaml` | Custom compile profiles (one per file) |
 | `.sprue/reset.sh` | Mechanical reset script: deletes content, state, domain config by level |
 | `.sprue/protocols/reset.md` | Reset protocol: level selection, confirmation flow, recovery |
-| `docs/development-process.md` | How the platform itself is developed — six-layer stack, prose-as-code model, work flows |
+| `docs/development-process.md` | How the platform itself is developed — generic SDD method and work flows |
 
 ## Constraints
 

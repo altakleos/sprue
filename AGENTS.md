@@ -14,7 +14,9 @@ This file is for LLM agents helping engineers develop the Sprue **platform itsel
 | Operating a KB built with Sprue | [engine.md](src/sprue/engine/engine.md) |
 | Learning what Sprue does | [Platform Guide](src/sprue/engine/README.md) |
 
-### Six-Layer Stack
+### Layer Stack
+
+Generic SDD method: seven layers, Sprue-instantiated at Implementation and Verification.
 
 | Layer | Location | I want to… |
 |-------|----------|------------|
@@ -22,10 +24,10 @@ This file is for LLM agents helping engineers develop the Sprue **platform itsel
 | Design Docs | `docs/design/` | Propose a new mechanism or architecture |
 | ADRs | `docs/decisions/` | Record a non-obvious decision |
 | Plans | `docs/plans/` | Break a feature into ordered tasks |
-| Protocols | `src/sprue/engine/protocols/` | Change how the LLM executes an operation |
-| Config + Validators | `src/sprue/engine/defaults.yaml` + `src/sprue/engine/scripts/` | Tune a threshold or add a check |
+| Implementation | `src/sprue/engine/protocols/` + `defaults.yaml` + helpers in `scripts/` | Change how an operation is performed (prose-as-code, config, deterministic helpers) |
+| Verification | `src/sprue/engine/scripts/check-*.py` + `verify.sh` + CI | Add or fix a check asserting a spec invariant |
 
-Authoritative reference: [docs/development-process.md](docs/development-process.md)
+Authoritative references: [docs/development-process.md](docs/development-process.md) (generic SDD method) · [docs/sprue-implementation.md](docs/sprue-implementation.md) (Sprue's instantiation of Implementation and Verification)
 
 ### Key Commands
 
@@ -110,42 +112,48 @@ When the user says "publish", execute this end-to-end without prompting:
 - **After:** `sprue verify`
 - **See:** [docs/plans/README.md](docs/plans/README.md) for the template
 
-### Modifying a Protocol
+### Modifying a Protocol (Implementation)
+
+Protocols are Sprue's prose-as-code instantiation of the Implementation layer.
 
 - **Prerequisite:** Understand which spec the protocol serves. If the change alters a product guarantee, update the spec FIRST.
 - **Start at:** The protocol in `src/sprue/engine/protocols/` — read it and the spec it serves
 - **Then:** Edit in imperative, deterministic style. Reference config via `config.dotpath`. NEVER hardcode thresholds.
 - **After:** `sprue verify`
-- **See:** [docs/design/prose-as-code.md](docs/design/prose-as-code.md)
+- **See:** [docs/sprue-implementation.md](docs/sprue-implementation.md) · [docs/design/prose-as-code.md](docs/design/prose-as-code.md)
 
-### Tuning Config
+### Tuning Config (Implementation)
+
+Config is Sprue's YAML instantiation of tunable parameters at the Implementation layer.
 
 - **Prerequisite:** The value is already consumed somewhere, OR you are wiring a new consumer in the same change. Orphan config keys are forbidden.
 - **Start at:** `src/sprue/engine/defaults.yaml` — find or add the tunable with a comment
 - **Then:** Update protocols that reference the dotpath, and wire the key into any validator or script that should consume it (see `src/sprue/engine/scripts/config.py` for the loader). Search for existing consumers: `grep -r "<dotpath>" src/sprue/engine/protocols/ src/sprue/engine/scripts/`
 - **After:** `sprue verify`
-- **See:** [src/sprue/engine/defaults.yaml](src/sprue/engine/defaults.yaml)
+- **See:** [docs/sprue-implementation.md](docs/sprue-implementation.md) · [src/sprue/engine/defaults.yaml](src/sprue/engine/defaults.yaml)
 - **Litmus test:** "Would every KB want the same value?" → invariant (bake into protocol prose). Otherwise → config.
 
-### Adding or Fixing a Validator
+### Adding or Fixing a Validator (Verification)
+
+Validators are Sprue's Python instantiation of the Verification layer.
 
 - **Prerequisite:** An invariant from a spec or protocol that can be checked mechanically. If the invariant doesn't exist yet, document it in the relevant spec/protocol first.
 - **Start at:** `src/sprue/engine/scripts/` — create `check-<name>.py` or fix the existing script
 - **Then:** Register it as a rule in `memory/rules.yaml` (the orchestrator `src/sprue/engine/scripts/verify.py` loads rules from there — see existing entries for format). NEVER remove comments or logging from scripts.
 - **After:** `sprue verify`
-- **See:** [docs/decisions/0013-tooling-and-ci-pipeline.md](docs/decisions/0013-tooling-and-ci-pipeline.md)
+- **See:** [docs/sprue-implementation.md](docs/sprue-implementation.md) · [docs/decisions/0013-tooling-and-ci-pipeline.md](docs/decisions/0013-tooling-and-ci-pipeline.md)
 - **Rule:** Validators MUST be Python. `verify.sh` is the sole bash wrapper.
 
-## The Six-Layer Stack
+## The Layer Stack
 
 Higher layers are more abstract and change less often. Lower layers change more frequently.
 
 ```
-Specs → Design Docs → ADRs → Plans → Protocols → Config + Validators
-(most stable)                                      (most volatile)
+Specs → Design Docs → ADRs → Plans → Implementation → Verification
+(most stable)                                          (most volatile)
 ```
 
-**Cardinal rule:** Changes flow top-down. A protocol change that alters a product guarantee MUST update the spec first. A config change that introduces a new mechanism MUST have a design doc.
+**Cardinal rule:** Changes flow top-down. An Implementation change that alters a product guarantee MUST update the spec first. A config change that introduces a new mechanism MUST have a design doc.
 
 ### When Do I Need Each Layer?
 
@@ -153,11 +161,10 @@ Specs → Design Docs → ADRs → Plans → Protocols → Config + Validators
 - **Design Doc** — New technical mechanism where architecture is non-obvious
 - **ADR** — Decision with genuine alternatives a future reader would question
 - **Plan** — Multi-step feature with 3+ commits across multiple files
-- **Protocol** — Any change to how the LLM executes an operation
-- **Config** — Any tunable value; NEVER hardcode in protocol prose
-- **Validator** — Any new invariant that can be checked mechanically
+- **Implementation** — Any change to how an operation is performed (protocol prose, config value, or deterministic helper). Sprue-specific task routing below.
+- **Verification** — Any new invariant that can be checked mechanically
 
-Full reference: [docs/development-process.md](docs/development-process.md)
+Full references: [docs/development-process.md](docs/development-process.md) (generic method) · [docs/sprue-implementation.md](docs/sprue-implementation.md) (Sprue's instantiation)
 
 ## Verification
 
@@ -215,10 +222,11 @@ AGENTS.md                          ← you are here (platform contributors)
 README.md                          ← project overview and quick start
 pyproject.toml                     ← build config (hatchling), deps, CLI entry point
 docs/
-  development-process.md           ← authoritative 6-layer stack reference
+  development-process.md           ← authoritative SDD method reference
+  sprue-implementation.md          ← Sprue's instantiation of Implementation + Verification
   specs/          (8 specs)        ← product intent and invariants
-  design/         (8 docs)         ← technical architecture
-  decisions/      (42 ADRs)        ← decision records (immutable, next: 0043)
+  design/         (9 docs)         ← technical architecture
+  decisions/      (43 ADRs)        ← decision records (immutable, next: 0044)
   plans/          (3 plans)        ← feature task breakdowns
 src/sprue/                         ← Python package root
   __init__.py                      ← version string (single source of truth)
