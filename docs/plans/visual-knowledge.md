@@ -88,17 +88,17 @@ Implement image capture, classification, and citation across the Sprue engine so
   - Inline placement for diagrams/charts near supporting claims
   - Density guardrails (max per page, min words per image)
 
-### Phase 4 — Validators & Provenance
+### Phase 4 — Validators & Provenance (DONE)
 
-- [ ] T4.1: Create check-images.py validator → `src/sprue/engine/scripts/check-images.py`
+- [x] T4.1: Create check-images.py validator → `src/sprue/engine/scripts/check-images.py` ✔
   - Validate image references: file exists in `raw/assets/`, alt text present
   - Follow check-sources.py pattern; `--quiet` and `--json` flags, exit 0/1
-- [ ] T4.2: Register check-images in rules.yaml template → `src/sprue/templates/memory/rules.yaml`
-- [ ] T4.3: Extend verify protocol for image fields → `src/sprue/engine/protocols/verify.md`
+- [x] T4.2: Register check-images in rules.yaml template → `src/sprue/templates/memory/rules.yaml` ✔
+- [x] T4.3: Extend verify protocol for image fields → `src/sprue/engine/protocols/verify.md` ✔
   - Recognize `source_media` and `extraction_confidence`
   - Apply confidence-gated corroboration (low requires Tier 2/3, blocks promotion)
-- [ ] T4.4: Extend query-provenance.py and build-index.py — no code changes needed
-  - Fields appear automatically via ledger schema
+- [x] T4.4: Extend query-provenance.py and build-index.py — no code changes needed ✔
+  - Fields appear automatically via ledger schema (additive YAML passthrough)
 
 ### Phase 5 — E2E Test & Documentation
 
