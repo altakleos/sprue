@@ -49,3 +49,6 @@ Platform decisions in chronological order. Each ADR captures the context, decisi
 | 0041 | [Extend verification ledger with per-claim source fields](0041-extend-verification-ledger-per-claim-source-fields.md) | accepted (lite) |
 | 0042 | [Dead sources boost verification priority, not downgrade confidence](0042-dead-sources-boost-verification-priority.md) | accepted (lite) |
 | 0043 | [Generic SDD Layer Names — Decouple Method from Sprue Artifacts](0043-generic-sdd-layers.md) | accepted |
+| 0044 | [Image Capture Pipeline — Download at Import, Rewrite URLs in Raw](0044-image-capture-pipeline.md) | accepted |
+| 0045 | [Image annotations in a single state ledger, not per-image sidecars](0045-image-annotations-single-state-ledger.md) | accepted (lite) |
+| 0046 | [Multimodal capability declared by config flag, not runtime probing](0046-multimodal-config-flag.md) | accepted (lite) |
