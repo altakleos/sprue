@@ -46,11 +46,11 @@ Implement image capture, classification, and citation across the Sprue engine so
 - [x] T0.4: Write ADR-0045 (annotations schema) → `docs/decisions/0045-image-annotations-schema.md` ✔
 - [x] T0.5: Write ADR-0046 (multimodal capability flag) → `docs/decisions/0046-multimodal-capability-flag.md` ✔
 
-### Phase 1 — Config & Scaffold
+### Phase 1 — Config & Scaffold (DONE)
 
-- [ ] T1.1: Add `config.images.*` section to defaults.yaml → `src/sprue/engine/defaults.yaml`
+- [x] T1.1: Add `config.images.*` section to defaults.yaml → `src/sprue/engine/defaults.yaml` ✔
   - Keys: `enabled`, `multimodal_available`, `capture.*`, `classify.*`, `compile.*`
-- [ ] T1.2: Add `raw/assets/` to sprue init scaffold → `src/sprue/cli/init.py`
+- [x] T1.2: Add `raw/assets/` to sprue init scaffold → `src/sprue/cli/init.py` ✔
   - Add to `_INSTANCE_DIRS`
 
 ### Phase 2 — Import Pipeline
