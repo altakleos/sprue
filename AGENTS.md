@@ -225,10 +225,10 @@ pyproject.toml                     ← build config (hatchling), deps, CLI entry
 docs/
   development-process.md           ← authoritative SDD method reference
   sprue-implementation.md          ← Sprue's instantiation of Implementation + Verification
-  specs/          (8 specs)        ← product intent and invariants
+  specs/          (9 specs)        ← product intent and invariants
   design/         (9 docs)         ← technical architecture
   decisions/      (46 ADRs)        ← decision records (immutable, next: 0047)
-  plans/          (3 plans)        ← feature task breakdowns
+  plans/          (4 plans)        ← feature task breakdowns
 src/sprue/                         ← Python package root
   __init__.py                      ← version string (single source of truth)
   engine_root.py                   ← resolves engine path at runtime
@@ -238,8 +238,8 @@ src/sprue/                         ← Python package root
     README.md                      ← platform guide
     defaults.yaml                  ← all tunables with defaults
     protocols/    (15 files)       ← prose code (LLM-executable)
-    scripts/      (25 files)       ← Python validators and utilities
-    prompts/      (11 files)       ← prompt templates
+    scripts/      (29 files)       ← Python validators and utilities
+    prompts/      (12 files)       ← prompt templates
     schemas/                       ← pipeline schemas
     profiles/                      ← compile profiles
     verify.sh                      ← test suite runner (thin wrapper → verify.py)

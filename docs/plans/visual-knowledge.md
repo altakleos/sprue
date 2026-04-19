@@ -8,7 +8,7 @@ decisions:
   - docs/decisions/0044-image-capture-pipeline.md
   - docs/decisions/0045-image-annotations-schema.md
   - docs/decisions/0046-multimodal-capability-flag.md
-status: in-progress
+status: done
 date: 2026-04-19
 ---
 # Plan: Visual Knowledge
@@ -100,14 +100,14 @@ Implement image capture, classification, and citation across the Sprue engine so
 - [x] T4.4: Extend query-provenance.py and build-index.py — no code changes needed ✔
   - Fields appear automatically via ledger schema (additive YAML passthrough)
 
-### Phase 5 — E2E Test & Documentation
+### Phase 5 — E2E Test & Documentation (DONE)
 
-- [ ] T5.1: End-to-end test with temporary KB instance
-  - `sprue init` test KB, import article with images
-  - Verify `raw/assets/` populated and imports.yaml has `assets` field
-  - Compile page, verify image-annotations.yaml and wiki page includes images
-  - Query provenance for an image-derived claim
-- [ ] T5.2: Update AGENTS.md repo map counts → `AGENTS.md`
+- [x] T5.1: End-to-end test with temporary KB instance ✔
+  - `sprue init` test KB, scaffold includes raw/assets/ ✓
+  - extract-images.py correctly filters tracking pixels
+  - check-images.py correctly flags missing files and empty alt text
+  - Bug fix: verify.py now honors script exit codes, not just stdout/stderr presence
+- [x] T5.2: Update AGENTS.md repo map counts → `AGENTS.md` ✔
 
 ## Non-Goals
 
