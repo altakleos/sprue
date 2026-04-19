@@ -219,6 +219,9 @@ def print_human(results: list[RuleResult], page_count: int, target_file: Optiona
     for r in results:
         if r.status == "skip":
             skipped += 1
+            if target_file and r.rule.scope == "whole":
+                print(f"⏭️  {r.rule.name} (whole-scope; skipped in --file mode, runs in full `sprue verify`)")
+                print()
             continue
         if r.status == "pass":
             passed += 1
