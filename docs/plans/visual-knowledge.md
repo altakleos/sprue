@@ -53,22 +53,22 @@ Implement image capture, classification, and citation across the Sprue engine so
 - [x] T1.2: Add `raw/assets/` to sprue init scaffold → `src/sprue/cli/init.py` ✔
   - Add to `_INSTANCE_DIRS`
 
-### Phase 2 — Import Pipeline
+### Phase 2 — Import Pipeline (DONE)
 
-- [ ] T2.1: Create image extraction helper → `src/sprue/engine/scripts/extract-images.py`
+- [x] T2.1: Create image extraction helper → `src/sprue/engine/scripts/extract-images.py` ✔
   - Scan raw markdown for `![alt](url)` patterns
   - Apply filtering heuristics (SVG size, dimensions, tracking domains)
   - Return candidate image list
-- [ ] T2.2: Create image download helper → `src/sprue/engine/scripts/download-image.py`
+- [x] T2.2: Create image download helper → `src/sprue/engine/scripts/download-image.py` ✔
   - HTTP fetch with timeout, content-type validation, size limit, one retry
   - Return local path and metadata (size, hash, dimensions)
   - Exit 0 on success, 1 on skip (warning to stderr)
-- [ ] T2.3: Update import protocol with image capture sub-step → `src/sprue/engine/protocols/import.md`
+- [x] T2.3: Update import protocol with image capture sub-step → `src/sprue/engine/protocols/import.md` ✔
   - After fetch, scan for images via extract-images.py
   - For each, invoke download-image.py
   - Rewrite raw markdown URLs to local paths; preserve original URL in HTML comment
   - Append `assets` list to imports.yaml entry
-- [ ] T2.4: Write test raw source for e2e → tested manually with `sprue init` instance
+- [ ] T2.4: Write test raw source for e2e → tested in Phase 5 (T5.1)
 
 ### Phase 3 — Compile Pipeline
 
