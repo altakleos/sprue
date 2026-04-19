@@ -6,7 +6,7 @@ protocols: [compile]
 ---
 # ADR-0046: Multimodal capability declared by config flag, not runtime probing
 
-**Decision:** The instance operator declares whether the operating LLM can accept image inputs via `config.images.multimodal_available` (default: false). No runtime probing, no capability negotiation, no auto-detection.
+**Decision:** The instance operator declares whether the operating LLM can accept image inputs via `config.images.multimodal_available` (default: true). No runtime probing, no capability negotiation, no auto-detection.
 
 **Why:** The operator knows their model's capabilities — they configured it. Runtime probing would require sending test images to measure response behavior, adding latency and cost to every compile. Explicit configuration is simpler, auditable, and consistent with how other capability flags work in the platform.
 

@@ -15,7 +15,7 @@ import sprue
 
 
 # Directories scaffolded in every new instance.
-_INSTANCE_DIRS = ("instance", "raw", "wiki", "notebook", "inbox", "memory", "state")
+_INSTANCE_DIRS = ("instance", "raw", "raw/assets", "wiki", "notebook", "inbox", "memory", "state")
 
 # Template files: (source name inside sprue.templates, destination relative to target).
 # These get {{variable}} rendering.

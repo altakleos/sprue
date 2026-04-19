@@ -430,7 +430,7 @@ Not every LLM has multimodal capabilities. The platform detects this via a singl
 
 #### Capability Detection
 
-The flag `config.images.multimodal_available` defaults to `false`. The instance operator sets it to `true` when the operating LLM can accept image inputs. No runtime probing — the operator knows their model's capabilities.
+The flag `config.images.multimodal_available` defaults to `true`. The instance operator sets it to `false` when the operating LLM cannot accept image inputs. No runtime probing — the operator knows their model's capabilities.
 
 #### Degradation Matrix
 
@@ -454,7 +454,7 @@ All image-related settings live under `config.images` in `defaults.yaml`. Instan
 ```yaml
 images:
   enabled: true                    # master switch — false skips all image processing
-  multimodal_available: false      # operator sets true when LLM accepts image inputs
+  multimodal_available: true       # operator sets false when LLM cannot accept image inputs
   capture:
     enabled: true                  # download images during import
     max_size_mb: 10                # skip images larger than this
