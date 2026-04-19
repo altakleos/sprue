@@ -78,6 +78,7 @@ When the user says "publish", execute this end-to-end without prompting:
 - If the task touches 3+ files or spans multiple layers → a plan is REQUIRED.
 - If no plan exists → create one first, following the template in `docs/plans/README.md`.
 - If a plan exists → read it, confirm which phase/task you are executing, and update it when done.
+- Executing a plan? Follow the mechanical/decision/destructive distinction and the pause triggers in [development-process.md § How Plans Are Executed](docs/development-process.md#how-plans-are-executed).
 
 ### Adding or Changing a Product Guarantee
 
