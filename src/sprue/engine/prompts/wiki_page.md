@@ -91,9 +91,19 @@ Select the annotation classified `subject-photo`. If multiple, pick the one whos
 ### Image syntax
 
 ```markdown
-![alt text](raw_path)
+![alt text](RELATIVE_PATH_TO_ASSET)
 *Figure N: description.[^src-N]*
 ```
+
+**Path rules:** Image paths MUST be relative to the wiki page's directory so they render in any markdown viewer (Obsidian, GitHub, VS Code). The raw asset is at `raw/assets/<file>` under the KB root. Compute the prefix:
+
+- Page at `wiki/<slug>.md` (depth 1) → `../raw/assets/<file>`
+- Page at `wiki/<dir>/<slug>.md` (depth 2) → `../../raw/assets/<file>`
+- Page at `wiki/<dir1>/<dir2>/<slug>.md` (depth 3) → `../../../raw/assets/<file>`
+
+Example: `wiki/korat.md` citing `raw/assets/korat-1-abc123.jpg` → `![Korat cat](../raw/assets/korat-1-abc123.jpg)`.
+
+Never use `raw/assets/<file>` as the path — it will not resolve from the wiki page's location.
 
 Omit the `[^src-N]` marker when the image is illustrative only (no claim): `*Figure N: description.*`
 

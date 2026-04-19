@@ -32,9 +32,17 @@ When `{{image_annotations}}` is non-empty, treat each annotation's `extracted_cl
 When citing an image-sourced claim, you may place the image near the claim:
 
 ```markdown
-![<description>](<raw_path>)
+![<description>](<RELATIVE_PATH_TO_ASSET>)
 *Figure N: <description>.[^src-N]*
 ```
+
+**Path rules:** The annotation's `raw_path` is relative to the KB root (e.g., `raw/assets/foo.jpg`). In the wiki markdown, the path MUST be relative to the wiki page's directory so it renders in Obsidian, GitHub, and other standard markdown viewers:
+
+- Wiki page at `wiki/<slug>.md` → prefix path with `../` → `![alt](../raw/assets/foo.jpg)`
+- Wiki page at `wiki/<dir>/<slug>.md` → prefix with `../../` → `![alt](../../raw/assets/foo.jpg)`
+- Wiki page at `wiki/<d1>/<d2>/<slug>.md` → prefix with `../../../`
+
+Never use the raw_path directly (`raw/assets/foo.jpg`) in the image tag — it will not resolve from the wiki page's location.
 
 The caption references the same marker as the claim it illustrates. If the image supports multiple claims, the caption cites the most prominent one. Entity pages: place a `subject-photo` hero image directly after TL;DR with a descriptive caption. Diagrams and charts go inline in the relevant section.
 
@@ -109,7 +117,7 @@ Kafka defaults to 7-day log retention[^src-1]. A single cluster supports up to 2
 ```markdown
 In throughput benchmarks, Kafka achieves approximately 2.1 million messages per second[^src-3].
 
-![Throughput comparison](raw/assets/kafka-throughput-1-7b3e2f1a.png)
+![Throughput comparison](../raw/assets/kafka-throughput-1-7b3e2f1a.png)
 *Figure 1: Kafka vs RabbitMQ vs ActiveMQ throughput.[^src-3]*
 
 ## Sources
