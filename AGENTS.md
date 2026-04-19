@@ -99,7 +99,7 @@ When the user says "publish", execute this end-to-end without prompting:
 ### Recording a Decision
 
 - **Prerequisite:** A design doc or spec the decision relates to, OR a genuine choice with viable alternatives.
-- **Start at:** `docs/decisions/` — create `0043-<slug>.md` (next number: **0043**)
+- **Start at:** `docs/decisions/` — create `0047-<slug>.md` (next number: **0047**)
 - **Then:** Use established format: YAML frontmatter (`status`, `date`), Context, Decision, Alternatives Considered, Consequences, optional Config Impact
 - **After:** `sprue verify`
 - **See:** [docs/decisions/README.md](docs/decisions/README.md)
@@ -227,7 +227,7 @@ docs/
   sprue-implementation.md          ← Sprue's instantiation of Implementation + Verification
   specs/          (8 specs)        ← product intent and invariants
   design/         (9 docs)         ← technical architecture
-  decisions/      (43 ADRs)        ← decision records (immutable, next: 0044)
+  decisions/      (46 ADRs)        ← decision records (immutable, next: 0047)
   plans/          (3 plans)        ← feature task breakdowns
 src/sprue/                         ← Python package root
   __init__.py                      ← version string (single source of truth)

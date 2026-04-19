@@ -571,7 +571,6 @@ The design is fully additive and backward-compatible. Existing KBs continue to w
 
 ## Decisions
 
-TBD — ADRs will be created during implementation:
-- Capture pipeline architecture (download strategy, raw immutability for image URLs)
-- Annotation schema (single ledger vs per-image sidecar files)
-- Multimodal capability detection (config flag vs runtime probing)
+- [ADR-0044: Image Capture Pipeline — Download at Import, Rewrite URLs in Raw](../decisions/0044-image-capture-pipeline.md)
+- [ADR-0045: Image annotations in a single state ledger, not per-image sidecars](../decisions/0045-image-annotations-schema.md)
+- [ADR-0046: Multimodal capability declared by config flag, not runtime probing](../decisions/0046-multimodal-capability-flag.md)
