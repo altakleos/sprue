@@ -271,9 +271,38 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
     except Exception:
         pass  # Best-effort; don't fail upgrade over shim creation.
 
+    # --- Install missing instance-side templates (additive only) ---
+    # Some templates (like memory/rules.yaml) were added to init.py after
+    # early KBs were created. Install them on upgrade if they don't exist,
+    # so existing KBs pick up defaults like the verify rules bundle.
+    # Never overwrites user-edited files — only copies if the destination
+    # doesn't exist.
+    _UPGRADE_ADDITIVE_TEMPLATES = (
+        ("memory/rules.yaml", "memory/rules.yaml"),
+    )
+    installed: list[str] = []
+    try:
+        with ExitStack() as stack:
+            tpl_dir = stack.enter_context(
+                resources.as_file(resources.files("sprue.templates"))
+            )
+            for src_path, dest_rel in _UPGRADE_ADDITIVE_TEMPLATES:
+                dest = dir_path / dest_rel
+                if not dest.exists():
+                    src_file = tpl_dir / src_path
+                    if src_file.exists():
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.write_text(src_file.read_text())
+                        installed.append(dest_rel)
+    except Exception:
+        pass  # Best-effort; don't fail upgrade over template install.
+
     # --- Success ---
     click.echo(f"Upgraded {dir_path}")
     click.echo(f"  {old_version} → {new_version}")
+    if installed:
+        for path in installed:
+            click.echo(f"  Installed: {path}")
     if schema_changed:
         click.echo(
             f"  Schema changed ({instance_schema} → {engine_schema}). "
