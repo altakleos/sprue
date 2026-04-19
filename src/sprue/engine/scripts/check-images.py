@@ -33,20 +33,35 @@ _IMG_RE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 _REMOTE_PREFIXES = ("http://", "https://", "data:")
 
 
+_ISSUE_LABELS = {
+    "missing_file": "missing file",
+    "empty_alt": "empty alt text",
+    "kb_root_relative": "KB-root-relative path (must be page-relative, e.g. '../raw/assets/…')",
+}
+
+
 def _violations_for(page: Path) -> list[dict]:
-    """Return violation records for image references in *page*."""
+    """Return violation records for image references in *page*.
+
+    Image paths in wiki pages must be relative to the page's directory so
+    they render in standard markdown viewers (Obsidian, GitHub, VS Code).
+    KB-root-relative paths like ``raw/assets/foo.jpg`` appear valid when
+    resolved from ROOT but break in viewers — flag them explicitly.
+    """
     text = page.read_text(encoding="utf-8")
     slug = str(page.relative_to(WIKI)).removesuffix(".md")
     violations: list[dict] = []
     for alt, ref in _IMG_RE.findall(text):
         if ref.startswith(_REMOTE_PREFIXES):
             continue
-        # Try resolving relative to instance root, then relative to page dir.
-        resolved = ROOT / ref
-        if not resolved.is_file():
-            resolved = page.parent / ref
-        if not resolved.is_file():
-            violations.append({"page": slug, "path": ref, "issue": "missing_file"})
+        # Paths MUST resolve relative to the page's directory.
+        page_relative = page.parent / ref
+        if not page_relative.is_file():
+            # Check whether the file exists via KB-root-relative resolution —
+            # if yes, this is the common "forgot the ../" mistake, give a
+            # targeted hint.
+            issue = "kb_root_relative" if (ROOT / ref).is_file() else "missing_file"
+            violations.append({"page": slug, "path": ref, "issue": issue})
         elif not alt.strip():
             violations.append({"page": slug, "path": ref, "issue": "empty_alt"})
     return violations
@@ -84,7 +99,7 @@ def main() -> int:
             if info["violations"]:
                 print(f"Page: {slug}  ✖ {len(info['violations'])} violations:")
                 for v in info["violations"]:
-                    print(f"   - {v['issue'].replace('_', ' ')}: {v['path']}")
+                    print(f"   - {_ISSUE_LABELS.get(v['issue'], v['issue'])}: {v['path']}")
             else:
                 print(f"Page: {slug}  ✔ {info['total']} local images all valid")
         if not violations:
