@@ -99,6 +99,31 @@ Before writing, check if the target path already exists. If it does (extremely u
 
 Create subdirectories as needed.
 
+### 4a. Capture images (conditional)
+
+**Skip this step entirely** unless ALL of: `config.images.enabled` is true, `config.images.capture.enabled` is true, and the raw content type is `text/markdown` (not PDF, not video).
+
+1. Run `extract-images.py <raw-file>` — outputs a JSON list of candidate images (URLs, alt text, sequence numbers) after applying filtering heuristics.
+2. If candidates exceed `config.images.capture.max_per_source`, keep the first N by document order. Log: `⚠️ capped image list to <N> (source contains <M>)`.
+3. For each candidate, invoke:
+   ```
+   download-image.py --url <url> --source-slug <slug> --sequence <n> --alt-text <text> --json
+   ```
+   Collect the JSON result (local path, size, content hash). A failed download emits a warning but does **not** fail the import — continue with the next candidate.
+4. Rewrite the raw markdown:
+   - For each successfully downloaded image, replace the remote URL with the local path (`raw/assets/<filename>`). Preserve the original URL in an HTML comment: `<!-- original: https://... -->`.
+   - Failed downloads leave the remote URL unchanged (no rewrite).
+5. Append an `assets` list to this source's `imports.yaml` entry (written in Step 5):
+   ```yaml
+   assets:
+     - local_path: raw/assets/kafka-guide-1-7f2a3b4c.png
+       original_url: https://example.com/arch.png
+       alt_text: Architecture overview
+       size_bytes: 245760
+       content_hash: 'sha256:7f2a3b4c'
+   ```
+6. Emit summary: `✨ captured N/M images (K skipped)` — N successful, M candidates, K skipped (over cap or failed).
+
 ### 5. Update state
 
 All classification metadata goes in `instance/state/imports.yaml`. This is the single source of truth for what IMPORT observed about the content.
