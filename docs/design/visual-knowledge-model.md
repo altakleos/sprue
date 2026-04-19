@@ -524,6 +524,35 @@ images:
 
 `sprue init` must scaffold `raw/assets/` alongside the other `raw/` subdirectories. Currently `init.py` only creates the top-level `raw/` directory — add `raw/assets/` to `_INSTANCE_DIRS` so it exists before the first import.
 
+## Migration
+
+The design is fully additive and backward-compatible. Existing KBs continue to work without modification.
+
+**Existing wiki pages (no images):**
+- Fully valid. No frontmatter fields are added retroactively.
+- Page type contracts make hero images optional, not mandatory.
+- `check-images.py` only validates pages that contain image references; pages without them are skipped.
+
+**Existing imports (no `assets` field in `imports.yaml`):**
+- Parse cleanly. The `assets` field is optional.
+- Compile Step 4a runs only when the raw source contains image references.
+
+**Existing verification ledger entries:**
+- `source_media` and `extraction_confidence` default to null. Text-sourced claims omit them.
+
+**What does NOT happen automatically:**
+- **No retroactive image capture.** The raw snapshot is immutable — the platform does not re-fetch existing sources to download images that were missed at original import time.
+- **No automatic enrichment of old wiki pages.** The normal verify and enhance cadence does not retroactively add images to pages compiled before this feature existed.
+
+**Enriching existing pages with images (manual workflow):**
+- Re-import the source. The new import captures images per the new pipeline, creating a fresh raw file with `assets`.
+- Re-compile the affected wiki page from the new raw. The new compilation treats the old wiki page as being superseded — the compile protocol's existing re-compile behavior handles this.
+- This is an operator-initiated workflow, not an automatic backfill.
+
+**Opt-in or opt-out at instance level:**
+- New KBs created via `sprue init` get `config.images.enabled: true` (the default in `defaults.yaml`). They benefit from image support immediately on first import.
+- Existing instances upgrading to a Sprue version with this feature inherit the default `true` as well, but because the feature only activates on *new* imports, existing content is unaffected. Operators who prefer text-only KBs can override to `false` in their instance `config.yaml`.
+
 ## Specs
 
 - [Visual Knowledge](../specs/visual-knowledge.md) — images are first-class knowledge sources; capture, classification, and graceful degradation invariants
