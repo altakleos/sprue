@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from sprue.engine_root import instance_root
 
 ROOT = instance_root()
-IMPORTS_FILE = ROOT / "state" / "imports.yaml"
+IMPORTS_FILE = ROOT / "instance" / "state" / "imports.yaml"
 _IMG_RE = re.compile(r"!\[[^\]]*\]\((https?://[^)]+|data:image/[^)]+)\)")
 _MD_TYPES = {"article", "tutorial", "readme", "paper", "thread"}
 
