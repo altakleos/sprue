@@ -26,7 +26,7 @@ All tunables live in `.sprue/defaults.yaml` with sensible defaults. Users overri
 
 Three layers with strict ownership:
 
-- `raw/` — Source material. Organized by content type. **Immutable** — files are never modified after capture. Classification metadata lives in `instance/state/imports.yaml`, not in the files themselves.
+- `raw/` — Source material. Organized by content type. **Immutable** — files are never modified after capture. Classification metadata lives in `instance/state/imports.yaml`, not in the files themselves. When `config.images.enabled` is true, `raw/assets/` stores captured images as immutable snapshots alongside their source documents.
 - `wiki/` — LLM-maintained knowledge. The LLM creates, updates, and cross-references all content here.
 - `notebook/` — Human-only writing. **Never modify.**
 
@@ -158,7 +158,7 @@ Section contracts can be overridden per instance in `config.page_types`. If a ty
 | # | Signal | Operation | Delegation |
 |---|---|---|---|
 | 1 | Question about a technology | **Query** | Read `.sprue/protocols/query.md` |
-| 2 | URL, file, "save this", "capture" | **Import** | Read `.sprue/protocols/import.md` |
+| 2 | URL, file, "save this", "capture" | **Import** | Read `.sprue/protocols/import.md` — includes image capture for markdown sources when images are enabled |
 | 3 | "compile", "process", "build pages" | **Compile** | Read `.sprue/protocols/compile.md` |
 | 4 | "expand", "grow", "what's missing" | **Expand** | Read `.sprue/protocols/expand.md` — modes: `--semi`, `--auto` |
 | 5 | Fix, clean, check existing content | **Maintain** | Read `.sprue/protocols/maintain.md` — first step is always `bash .sprue/verify.sh` |
@@ -210,6 +210,7 @@ Bootstrap checklist — before every operation:
 - Use mermaid diagrams (` ```mermaid `) when a visual clarifies — don't force them on every page. Prefer mermaid over ASCII art.
 - When confidence is low, say so explicitly in the page content.
 - **KB identity & guidelines**: read `instance/identity.md`. The LLM derives audience, voice, depth, and scope from the identity statement.
+- **Visual knowledge**: images embedded in source material are captured, classified, and cited alongside text. See `.sprue/protocols/import.md` (Step 4a) and `.sprue/protocols/compile.md` (Step 4a).
 
 ## Special Files
 
@@ -225,6 +226,8 @@ Bootstrap checklist — before every operation:
 | `instance/state/expansions.yaml` | Expand history: runs, topics proposed/accepted/rejected. Append-only. |
 | `instance/state/enhancements.yaml` | Enhance gap ledger: new-page findings approved by human. Consumed by EXPAND. Append-only. |
 | `instance/state/verifications.yaml` | Verify ledger: page claims checked, fixes applied. Append-only. |
+| `instance/state/image-annotations.yaml` | Image classification and extracted claims, keyed by content hash. Append-only. |
+| `raw/assets/` (directory) | Immutable storage for captured images. Populated during import when `config.images.enabled` is true. |
 | `instance/config.yaml` | User overrides — only what differs from defaults |
 | `.sprue/defaults.yaml` | All tunables with platform defaults — facets, page types, size profiles, thresholds |
 | `instance/entity-types.yaml` | Entity ontological registry: topic slug → kind, relationship type vocabulary |
@@ -254,3 +257,4 @@ Bootstrap checklist — before every operation:
 | Don't edit many pages without approval | Compile Step 3 classification plan IS the batch plan. Once approved, execute ALL pages without pausing. NEVER say "Page N done, say go for page N+1." |
 | Never create duplicate raw files for the same source URL | Check `instance/state/imports.yaml` before every write — including within a batch. In batch mode, maintain an in-memory seen-set of URLs processed so far in the current run |
 | Never inject metadata into raw files | Raw files are verbatim source content. Classification metadata (source URL, title, content_type) belongs only in `instance/state/imports.yaml` — never as YAML frontmatter or headers in the file itself |
+| Never skip image capture during import when the source contains embedded images | Capturing images is part of the import protocol (Step 4a). Images are first-class knowledge sources, not decoration. See `.sprue/protocols/import.md` |
