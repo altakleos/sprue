@@ -70,20 +70,20 @@ Implement image capture, classification, and citation across the Sprue engine so
   - Append `assets` list to imports.yaml entry
 - [ ] T2.4: Write test raw source for e2e → tested in Phase 5 (T5.1)
 
-### Phase 3 — Compile Pipeline
+### Phase 3 — Compile Pipeline (DONE)
 
-- [ ] T3.1: Create image annotation prompt template → `src/sprue/engine/prompts/classify-image.md`
+- [x] T3.1: Create image annotation prompt template → `src/sprue/engine/prompts/classify-image.md` ✔
   - Guide LLM through classification (8 categories) and description
   - Both multimodal and text-only tracks
-- [ ] T3.2: Update compile protocol with Step 4a (image triage) → `src/sprue/engine/protocols/compile.md`
+- [x] T3.2: Update compile protocol with Step 4a (image triage) → `src/sprue/engine/protocols/compile.md` ✔
   - Read imports.yaml for raw source's assets
   - Invoke classify-image prompt per image
   - Persist annotations to `instance/state/image-annotations.yaml` keyed by content_hash
   - Skip if annotation for content_hash already exists (dedup on re-compile)
-- [ ] T3.3: Update cite-then-claim for image sources → `src/sprue/engine/prompts/compile-attributed.md`
+- [x] T3.3: Update cite-then-claim for image sources → `src/sprue/engine/prompts/compile-attributed.md` ✔
   - Image annotations become citable excerpts
   - Claims get `source_media` and `extraction_confidence` in ledger entries
-- [ ] T3.4: Update page type placement rules → `src/sprue/engine/prompts/wiki_page.md`
+- [x] T3.4: Update page type placement rules → `src/sprue/engine/prompts/wiki_page.md` ✔
   - Entity pages: subject-photo after TL;DR as hero image
   - Inline placement for diagrams/charts near supporting claims
   - Density guardrails (max per page, min words per image)

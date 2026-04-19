@@ -99,6 +99,37 @@ For each approved item, in order:
 1. Read the raw file's entry from `instance/state/imports.yaml` (title and content_type for context)
 2. Read the raw file content in full
 3. Classify: determine domain, topic, page type, and wiki placement (this is COMPILE's primary classification job — IMPORT only detected format)
+
+#### Step 4a: Image triage (conditional)
+
+Skip this sub-step entirely if `config.images.enabled` is `false` OR the raw source's entry in `instance/state/imports.yaml` has no `assets` list (or it is empty).
+
+Load `instance/state/image-annotations.yaml` if it exists and build a lookup keyed by `content_hash`. For each asset in the imports.yaml entry:
+
+a. **Dedup check.** If `content_hash` already has an annotation in the ledger, reuse it — do not re-classify. This ensures re-compilation of unchanged images is free.
+b. **Classify new images.** Invoke `.sprue/prompts/classify-image.md` with:
+   - `{{image_path}}` — the asset's `local_path` from imports.yaml
+   - `{{image_url}}` — the `original_url`
+   - `{{alt_text}}` — the `alt_text`
+   - `{{filename}}` — basename of `local_path`
+   - `{{surrounding_prose}}` — 1–2 paragraphs of raw text around the image reference (locate by the rewritten local path in the raw markdown)
+   - `{{page_context}}` — the slug and domain/topic currently being compiled
+c. **Parse the LLM's YAML response** and append a new entry to `instance/state/image-annotations.yaml`:
+   ```yaml
+   - raw_path: <local_path>
+     content_hash: <content_hash>
+     analyzed_at: "<ISO 8601>"
+     analysis_mode: multimodal | text-only   # multimodal when config.images.multimodal_available is true
+     classification: <one of the taxonomy values>
+     description: "<LLM-generated description>"
+     extracted_claims: [...]
+     associated_raw: <path to the raw markdown file>
+   ```
+   The ledger is append-only per the platform state model (ADR-0045).
+d. **Decorative images** receive a `classification: decorative` entry in the ledger for audit purposes. Downstream page-writing steps skip them when placing images — the annotation exists but carries no extractable knowledge.
+
+After all assets are annotated, continue to sub-step 4. The page-writing prompt now has access to the full annotation set for image placement and cite-then-claim attribution of image-sourced claims.
+
 4. Read `.sprue/prompts/<strategy>.md` for the compilation prompt template (or use default wiki_page strategy)
 5. Read the wiki manifest for context (existing pages, topic values, domain values)
 6. **Assign facets** — read `.sprue/defaults.yaml` → `facets:` for the list of facets, their descriptions, and guardrails. For each facet:
