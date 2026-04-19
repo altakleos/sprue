@@ -425,3 +425,42 @@ source_authority:
     interval_days: 30           # Days between health checks per URL
     timeout_seconds: 10         # HTTP request timeout
     drift_threshold: 0.3        # Content similarity below this triggers drift alert (0.0-1.0)
+
+# ── Visual Knowledge ────────────────────────────────────────────────────
+# Image capture, classification, and cite-then-claim integration.
+# Referenced by: import protocol, compile protocol, verify protocol, check-images.py.
+
+images:
+  enabled: true                  # master switch; false skips all image processing
+  multimodal_available: false    # operator sets true when the operating LLM accepts image inputs
+
+  capture:
+    enabled: true                        # download images during import
+    allowed_extensions:                  # accepted image extensions (lowercase, no leading dot)
+      - png
+      - jpg
+      - jpeg
+      - gif
+      - svg
+      - webp
+    max_bytes: 10485760                  # 10 MB per image — skip with warning if exceeded
+    max_per_source: 20                   # max images captured per imported source
+    min_svg_bytes: 512                   # skip SVGs under this size (likely icons)
+    min_data_uri_bytes: 1024             # skip data: URIs under this size (likely icons)
+    min_dimensions: [100, 100]           # skip images smaller than WxH (filters tracking pixels, spacers)
+    timeout_seconds: 15                  # HTTP fetch timeout per image
+    max_redirects: 3                     # redirect chain limit
+    tracking_domains:                    # URL substring blocklist for tracking pixels
+      - "pixel."
+      - "beacon."
+      - "analytics."
+      - "track."
+      - "1x1"
+
+  classify:
+    filter_decorative: true              # exclude decorative-classified images from wiki pages
+    default_confidence: low              # baseline extraction_confidence in text-only mode
+
+  compile:
+    max_per_page: 6                      # hard cap on images per wiki page
+    min_words_per_image: 150             # min prose words per image (density guardrail)
