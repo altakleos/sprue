@@ -5,3 +5,7 @@
 - name: images-valid
   command: ["python3", ".sprue/scripts/check-images.py", "--quiet"]
   scope: whole
+
+- name: asset-capture
+  command: ["python3", ".sprue/scripts/check-asset-capture.py", "--quiet"]
+  scope: whole
