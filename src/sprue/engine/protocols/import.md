@@ -35,6 +35,14 @@ Retrieve the content. Use the appropriate method per source type:
 | Local file | File path, no URL | Read directly from disk. If source is in `inbox/`, delete the original after successful import (move semantics). |
 | Pasted content | No URL, inline text | Use as-is |
 
+**Jina fallback — preserve image references.** When the Jina Reader fetch fails (rate-limited, blocked, security error) and you fall back to another fetch method (e.g., `web_fetch`, direct `curl`), the fallback usually strips image tags. Before saving the raw file, append the page's image markdown so Step 5 can capture them:
+
+```
+python3 .sprue/scripts/extract-html-images.py "<URL>" --markdown >> <raw-file>
+```
+
+This appends one `![alt](src)` line per image found in the original HTML. Skip this step when the primary Jina fetch succeeds — its output already contains image references.
+
 If fetch fails: `❌ Fetch failed: <reason>. URL saved to inbox/failed-imports.md for retry.`
 
 ### 3. Analyze & classify
