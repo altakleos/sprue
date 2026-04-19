@@ -4,7 +4,7 @@ Task breakdowns for platform features. Written AFTER design, BEFORE implementati
 
 Plans are permanent records — they stay after the feature ships as historical documentation of how features were built.
 
-See `docs/development-process.md` for when to write a plan and how plans fit in the development stack.
+See `docs/development-process.md` for when to write a plan and how plans fit in the development stack. For how an implementing agent should execute a plan (streaming mechanical tasks, stopping at decisions and destructive ops, avoiding approval theater), see [development-process.md § How Plans Are Executed](../development-process.md#how-plans-are-executed).
 
 ## Template
 
