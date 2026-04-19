@@ -14,4 +14,4 @@ For the full development model, see `docs/development-process.md`.
 | 6 | [Agent Memory and Learning](agent-memory.md) | Structured rules and tracked corrections for cross-session learning | accepted |
 | 7 | [Plans Layer](plans-layer.md) | Task breakdowns bridging design to implementation | accepted |
 | 8 | [Sprue Distribution Model](sprue-distribution.md) | Pip-installable package with CLI scaffolding and local engine copy | accepted |
-| 9 | [Visual Knowledge Model](visual-knowledge-model.md) | Image capture, compile-time understanding, provenance, and graceful degradation for visual content | draft |
+| 9 | [Visual Knowledge Model](visual-knowledge-model.md) | Image capture, compile-time understanding, provenance, and graceful degradation for visual content | accepted |
