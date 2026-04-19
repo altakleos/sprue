@@ -99,9 +99,11 @@ Before writing, check if the target path already exists. If it does (extremely u
 
 Create subdirectories as needed.
 
-### 4a. Capture images (conditional)
+### 5. Capture images
 
-**Skip this step entirely** unless ALL of: `config.images.enabled` is true, `config.images.capture.enabled` is true, and the raw content type is `text/markdown` (not PDF, not video).
+For markdown sources, capture embedded images as immutable snapshots in `raw/assets/`. Images are first-class knowledge sources — they are captured during import with the same snapshot philosophy applied to text.
+
+**Gate check:** If `config.images.enabled` is false OR `config.images.capture.enabled` is false OR the source is not `text/markdown` (e.g., PDF, video), skip to Step 6.
 
 1. Run `extract-images.py <raw-file>` — outputs a JSON list of candidate images (URLs, alt text, sequence numbers) after applying filtering heuristics.
 2. If candidates exceed `config.images.capture.max_per_source`, keep the first N by document order. Log: `⚠️ capped image list to <N> (source contains <M>)`.
@@ -113,7 +115,7 @@ Create subdirectories as needed.
 4. Rewrite the raw markdown:
    - For each successfully downloaded image, replace the remote URL with the local path (`raw/assets/<filename>`). Preserve the original URL in an HTML comment: `<!-- original: https://... -->`.
    - Failed downloads leave the remote URL unchanged (no rewrite).
-5. Append an `assets` list to this source's `imports.yaml` entry (written in Step 5):
+5. Append an `assets` list to this source's `imports.yaml` entry (written in Step 6):
    ```yaml
    assets:
      - local_path: raw/assets/kafka-guide-1-7f2a3b4c.png
@@ -124,7 +126,7 @@ Create subdirectories as needed.
    ```
 6. Emit summary: `✨ captured N/M images (K skipped)` — N successful, M candidates, K skipped (over cap or failed).
 
-### 5. Update state
+### 6. Update state
 
 All classification metadata goes in `instance/state/imports.yaml`. This is the single source of truth for what IMPORT observed about the content.
 
@@ -145,7 +147,7 @@ Append to `memory/log.jsonl`:
 {"ts":"<ISO8601>","op":"import","title":"<title>","created":1,"modified":0,"deleted":0,"summary":"Imported <content-type> from <source> → <raw-path>"}
 ```
 
-### 6. Feedback
+### 7. Feedback
 
 One line. Don't interrupt the user's flow:
 
