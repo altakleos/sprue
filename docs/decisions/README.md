@@ -31,7 +31,7 @@ Platform decisions in chronological order. Each ADR captures the context, decisi
 | 0023 | [Reset Command — Soft/Standard/Hard Levels](0023-reset-command.md) | accepted |
 | 0024 | [Inbox Drop Zone](0024-inbox-drop-zone.md) | accepted |
 | 0025 | [Schema Versioning and Status Reporting](0025-schema-versioning.md) | accepted |
-| 0026 | [Spec-Driven Development Process](0026-spec-driven-development-process.md) | accepted |
+| 0026 | [Spec-Driven Development Process](0026-spec-driven-development-process.md) | superseded by 0043 |
 | 0027 | [Sources Field in Frontmatter](0027-sources-field-in-frontmatter.md) | accepted |
 | 0028 | [Provenance Enforcement Model](0028-provenance-enforcement-model.md) | accepted |
 | 0029 | [Plans Layer — Task Breakdowns as Permanent Records](0029-plans-layer.md) | accepted |
@@ -48,3 +48,4 @@ Platform decisions in chronological order. Each ADR captures the context, decisi
 | 0040 | [Cite-Then-Claim Generation at Compile Time](0040-cite-then-claim-generation.md) | accepted |
 | 0041 | [Extend verification ledger with per-claim source fields](0041-extend-verification-ledger-per-claim-source-fields.md) | accepted (lite) |
 | 0042 | [Dead sources boost verification priority, not downgrade confidence](0042-dead-sources-boost-verification-priority.md) | accepted (lite) |
+| 0043 | [Generic SDD Layer Names — Decouple Method from Sprue Artifacts](0043-generic-sdd-layers.md) | accepted |

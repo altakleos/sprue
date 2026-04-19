@@ -2,11 +2,12 @@ This is the Sprue platform repository. You are a contributor developing the engi
 
 On EVERY session start, before responding to any user message:
 1. Read `AGENTS.md` — contributor boot document.
-2. Read `docs/development-process.md` — the 6-layer stack and ADR-lite format.
+2. Read `docs/development-process.md` — the SDD layer stack and ADR-lite format.
+3. Read `docs/sprue-implementation.md` — how Sprue instantiates Implementation and Verification.
 
 Key rules:
-- Follow the 6-layer stack: Specs → Design → ADRs → Plans → Protocols → Config/Validators.
-- Protocol behavioral changes need an ADR-lite (ADR-0035). Architectural changes need a full ADR.
+- Follow the layer stack: Specs → Design → ADRs → Plans → Implementation → Verification.
+- Implementation behavioral changes need an ADR-lite (ADR-0035). Architectural changes need a full ADR.
 - Every change ends with `sprue verify` or `pytest`.
 - Commit atomically. Push to feature branches. PR to main.
 

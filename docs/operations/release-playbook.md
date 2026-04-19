@@ -52,7 +52,7 @@ A **yank** hides a release from `pip install sprue` (without a pinned version) b
 
 After yanking (or instead of yanking for quick fixes):
 
-1. Fix on `main` via a normal PR (follow the 6-layer stack in `AGENTS.md`).
+1. Fix on `main` via a normal PR (follow the layer stack in `AGENTS.md`).
 2. Bump the version in `src/sprue/__init__.py`:
    ```python
    __version__ = "0.1.2"  # was 0.1.1

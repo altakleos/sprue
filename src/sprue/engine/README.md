@@ -11,7 +11,7 @@ A reusable platform for building LLM-operated knowledge bases. You provide the i
   decisions/       ← Architecture Decision Records — WHICH choices and WHY
   defaults.yaml    ← Every tunable value with sensible defaults
   engine.md        ← Architecture, commands, schema, constraints
-  development-process.md ← How the platform is developed (six-layer stack)
+  development-process.md ← How the platform is developed (SDD layer stack)
   protocols/       ← Operation procedures (compile, verify, expand, etc.)
   scripts/         ← Python validators (lint, index, search, decay)
   prompts/         ← LLM prompt templates

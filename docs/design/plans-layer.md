@@ -8,18 +8,18 @@ Task breakdowns that bridge the gap between design (HOW a mechanism works) and i
 
 ## Context
 
-The six-layer stack (Specs → Design → ADRs → Protocols → Config → Validators) captured WHAT the platform does, HOW mechanisms work, and WHY decisions were made — but had no artifact for WHAT TO DO NEXT. During implementation, agents either worked from memory (lost between sessions) or reverse-engineered tasks from design docs (duplicated effort per agent).
+The pre-plans stack (Specs → Design → ADRs → Implementation → Verification) captured WHAT the platform does, HOW mechanisms work, and WHY decisions were made — but had no artifact for WHAT TO DO NEXT. During implementation, agents either worked from memory (lost between sessions) or reverse-engineered tasks from design docs (duplicated effort per agent).
 
 The SDD pipeline requires a concrete artifact between Design and Implement: something an agent reads cold and knows exactly which files to touch, in what order, with what acceptance criteria.
 
 ## Architecture
 
-Plans sit between ADRs and Protocols in the stack — they consume design decisions and produce implementation guidance.
+Plans sit between ADRs and Implementation in the stack — they consume design decisions and produce implementation guidance.
 
 ```
-Specs → Design → ADRs → [Plans] → Protocols → Config → Validators
-                              ↑                    ↓
-                        reads design          guides implementation
+Specs → Design → ADRs → [Plans] → Implementation → Verification
+                              ↑                         ↓
+                        reads design              guides implementation
 ```
 
 ### Lifecycle
@@ -74,7 +74,7 @@ The threshold: if the implementation involves multiple files or steps that must 
 ## Trade-offs
 
 - **Plans are permanent, not ephemeral.** This costs disk space and adds files to the repo, but provides historical records of how features were built — valuable for understanding implementation decisions that don't rise to ADR level.
-- **Plans are flat files, not directories.** A per-feature directory (`.sdd/<feature>/`) was rejected (ADR-0029) because it created a parallel hierarchy duplicating the six-layer stack. A single file per feature in `docs/plans/` is sufficient.
+- **Plans are flat files, not directories.** A per-feature directory (`.sdd/<feature>/`) was rejected (ADR-0029) because it created a parallel hierarchy duplicating the layer stack. A single file per feature in `docs/plans/` is sufficient.
 - **Plans have no automated enforcement.** There is no CI check that a plan exists before implementation. This is intentional — the scope routing table allows small changes to skip plans. Enforcement would add friction to bug fixes.
 
 ## Specs

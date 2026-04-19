@@ -1,5 +1,6 @@
 ---
-status: accepted
+status: superseded
+superseded-by: 0043
 date: 2026-04-16
 ---
 # ADR-0026: Spec-Driven Development Process
