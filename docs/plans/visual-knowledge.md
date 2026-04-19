@@ -109,6 +109,19 @@ Implement image capture, classification, and citation across the Sprue engine so
   - Bug fix: verify.py now honors script exit codes, not just stdout/stderr presence
 - [x] T5.2: Update AGENTS.md repo map counts → `AGENTS.md` ✔
 
+### Phase 6 — Post-Ship Discoverability Fixes (DONE)
+
+Real-world session revealed agents skipped Step 4a during import because the feature was invisible in the LLM kernel and the protocol prose invited skipping. Three-layer fix:
+
+- [x] T6.1: Add image awareness to engine.md (kernel) → `src/sprue/engine/engine.md` ✔
+  - Added mentions in Architecture, Operation Dispatch, Special Files, Constraints, Style Rules
+- [x] T6.2: Rewrite Step 4a as Step 5, action-first → `src/sprue/engine/protocols/import.md` ✔
+  - Promoted from sub-step to full step
+  - Leads with action, not with skip conditions
+- [x] T6.3: Create check-asset-capture.py validator → `src/sprue/engine/scripts/check-asset-capture.py` ✔
+  - Catches silent Step 5 skips: flags when raw has remote image refs but imports.yaml has no assets
+  - Registered in rules.yaml template
+
 ## Non-Goals
 
 - Video, audio, or interactive media
