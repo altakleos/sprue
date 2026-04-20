@@ -41,7 +41,8 @@ _DECORATIVE_CLASSIFICATIONS = {"decorative", "unknown"}
 _ISSUE_LABELS = {
     "missing_file": "missing file",
     "empty_alt": "empty alt text",
-    "kb_root_relative": "KB-root-relative path (must be page-relative, e.g. '../raw/assets/…')",
+    "kb_root_relative": "KB-root-relative path — rewrite to 'assets/<file>' (run .sprue/scripts/fix-image-paths.py)",
+    "parent_escape_legacy": "legacy '../raw/assets/' path — rewrite to 'assets/<file>' (run .sprue/scripts/fix-image-paths.py)",
     "not_annotated": "referenced image has no annotation in image-annotations.yaml — run compile Step 4 (Triage)",
     "decorative_referenced": "referenced image is classified decorative/unknown in image-annotations.yaml — do not place it in wiki pages",
 }
@@ -95,13 +96,20 @@ def _violations_for(page: Path, annotations: dict[str, str]) -> list[dict]:
     for alt, ref in _IMG_RE.findall(text):
         if ref.startswith(_REMOTE_PREFIXES):
             continue
-        # Paths MUST resolve relative to the page's directory.
+        # Paths MUST resolve through the page's directory or the wiki/assets
+        # symlink. ``assets/<file>`` is the canonical form (ADR-0047).
+        # Detect legacy ``../raw/assets/`` form even when the file exists on
+        # disk — Obsidian rejects paths that escape the vault.
+        stripped = ref.lstrip("./")
+        if "raw/assets/" in ref and stripped.startswith("../"):
+            violations.append({"page": slug, "path": ref, "issue": "parent_escape_legacy"})
+            continue
         page_relative = page.parent / ref
         if not page_relative.is_file():
-            # Check whether the file exists via KB-root-relative resolution —
-            # if yes, this is the common "forgot the ../" mistake, give a
-            # targeted hint.
-            issue = "kb_root_relative" if (ROOT / ref).is_file() else "missing_file"
+            if ref.startswith("raw/assets/") and (ROOT / ref).is_file():
+                issue = "kb_root_relative"
+            else:
+                issue = "missing_file"
             violations.append({"page": slug, "path": ref, "issue": issue})
             continue
         if not alt.strip():

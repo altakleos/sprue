@@ -95,15 +95,11 @@ Select the annotation classified `subject-photo`. If multiple, pick the one whos
 *Figure N: description.[^src-N]*
 ```
 
-**Path rules:** Image paths MUST be relative to the wiki page's directory so they render in any markdown viewer (Obsidian, GitHub, VS Code). The raw asset is at `raw/assets/<file>` under the KB root. Compute the prefix:
+**Path rules:** Use `assets/<file>` in the markdown. For pages directly under `wiki/` this works as-is. For pages in subdirectories (e.g., `wiki/cats/foo.md`), the fixer (`fix-image-paths.py`, run automatically at verify) rewrites to the correct vault-rooted form (`../assets/<file>`). You do NOT need to compute the prefix — just write `assets/<file>` and trust the fixer. The KB provides a symlink `wiki/assets → ../raw/assets` so assets stay inside the Obsidian vault and render in Obsidian, GitHub, and VS Code.
 
-- Page at `wiki/<slug>.md` (depth 1) → `../raw/assets/<file>`
-- Page at `wiki/<dir>/<slug>.md` (depth 2) → `../../raw/assets/<file>`
-- Page at `wiki/<dir1>/<dir2>/<slug>.md` (depth 3) → `../../../raw/assets/<file>`
+Example: `wiki/korat.md` citing `raw/assets/korat-1-abc123.jpg` → `![Korat cat](assets/korat-1-abc123.jpg)`.
 
-Example: `wiki/korat.md` citing `raw/assets/korat-1-abc123.jpg` → `![Korat cat](../raw/assets/korat-1-abc123.jpg)`.
-
-Never use `raw/assets/<file>` as the path — it will not resolve from the wiki page's location.
+Never use `raw/assets/<file>` or `../raw/assets/<file>` — Obsidian refuses to render paths outside its vault (the vault is `wiki/`).
 
 Omit the `[^src-N]` marker when the image is illustrative only (no claim): `*Figure N: description.*`
 
