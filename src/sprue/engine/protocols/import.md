@@ -2,21 +2,25 @@
 
 *Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
-**Trigger:** "import", "save this", "capture", "bookmark", "ingest", a bare URL, or a file path.
+**Trigger:** "import", "save this", "capture", "bookmark", a bare URL, or a file path.
 
-## ⚠️ Ingest mode — READ FIRST
+## Mode determination — READ FIRST
 
-If the user said **`ingest <url>`** OR **`import --compile <url>`** OR affirmatively accepted a prompt like "ingest this article?" (e.g., answered `y`/`yes`/accepted), you MUST execute the `ingest` workflow below. This overrides the "and stop" language in the Role section and the "❌ Create wiki pages" item in the "What IMPORT does NOT do" list — those apply to **bare `import`**, NOT to `ingest`.
+This protocol supports two modes. Check the user's literal command BEFORE executing any steps:
 
-**`ingest` workflow (MANDATORY when triggered by ingest or an affirmative prompt):**
-1. Run ALL steps of this IMPORT protocol through Step 6 (finalize entry)
-2. **Do NOT stop** after the import confirmation line
-3. **Immediately** read `.sprue/protocols/compile.md` and run COMPILE on the just-imported raw file
-4. End with both the import line and the compile result
+| User's command starts with | Mode | Behavior |
+|---|---|---|
+| `import <url>` | **bare import** | Run Steps 1–6. Stop after the confirmation line. Do NOT compile. |
+| `ingest <url>` | **ingest** | Run Steps 1–6, then IMMEDIATELY read `.sprue/protocols/compile.md` and run COMPILE on the just-imported raw file. |
+| `import --compile <url>` | **ingest** | Same as `ingest`. |
+| `ingest <url> --deep` | **ingest + expand** | `ingest` behavior, then read `.sprue/protocols/expand.md` and run it on the compiled page. |
 
-The `--deep` variant (`ingest <url> --deep`) adds: after COMPILE, read `.sprue/protocols/expand.md` and run it on the compiled page.
+**Rules for mode selection:**
 
-Do NOT ask the user "ready to compile?" — that's the bare `import` prompt, not `ingest`. `ingest` means go all the way.
+- The mode is determined by the user's LITERAL command. Nothing else.
+- Do NOT infer ingest mode from prompts you wrote yourself, from follow-up questions, or from the user's later responses to those prompts.
+- Do NOT ask "ready to compile?" or "want me to continue?" at the end of bare `import`. The user explicitly chose `import`; they will say `compile <slug>` if they want the next step.
+- If the user typed `import <url>` and nothing else, bare import mode is MANDATORY. Stop after Step 6. The "❌ Create wiki pages" rule in the "What IMPORT does NOT do" section applies in full.
 
 ---
 
@@ -213,8 +217,10 @@ Process each independently. One confirmation line per URL. Failures don't block 
 
 ## What IMPORT does NOT do
 
-- ❌ Create wiki pages (unless `ingest` — see top of file)
-- ❌ Generate markdown summaries or compilations (unless `ingest`)
+The bulleted items below apply to **bare `import`** mode (see the Mode Determination table at the top of this file). In `ingest` mode, the compile step runs automatically after IMPORT completes; but bare `import` stops after capture, and none of the following happens:
+
+- ❌ Create wiki pages
+- ❌ Generate markdown summaries or compilations
 - ❌ Add wiki frontmatter or section structure
 - ❌ Create wikilinks
 - ❌ Run verify.sh
