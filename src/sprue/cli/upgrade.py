@@ -50,31 +50,58 @@ def _read_schema_window(path: Path) -> tuple[int, int] | None:
     return None
 
 
-def _merge_rules(instance_path: Path, template_path: Path) -> list[str]:
-    """Append rules from the template into the instance rules.yaml by name.
+def _merge_rules(instance_path: Path, template_path: Path) -> tuple[list[str], list[str]]:
+    """Append rules from the template into the instance rules.yaml by name,
+    and update scope of existing rules when it differs from the template.
 
-    Preserves user-edited rules and ordering. Returns the list of rule names
-    that were added. Silently no-ops on parse errors (best-effort).
+    Preserves user-edited commands and ordering. Scope is platform-controlled
+    (it governs when a validator fires) and must stay in sync with the engine.
+    Returns (added_names, scope_updated_names). Silently no-ops on parse
+    errors (best-effort).
     """
     try:
         instance_doc = yaml.safe_load(instance_path.read_text(encoding="utf-8")) or []
         template_doc = yaml.safe_load(template_path.read_text(encoding="utf-8")) or []
     except Exception:
-        return []
+        return [], []
     if not isinstance(instance_doc, list) or not isinstance(template_doc, list):
-        return []
+        return [], []
+    by_name = {r["name"]: r for r in template_doc if isinstance(r, dict) and r.get("name")}
     existing_names = {r.get("name") for r in instance_doc if isinstance(r, dict)}
-    added: list[dict] = []
-    for rule in template_doc:
-        if isinstance(rule, dict) and rule.get("name") and rule["name"] not in existing_names:
-            added.append(rule)
-    if not added:
-        return []
-    # Preserve existing text; append YAML-formatted new rules with a blank line.
-    existing_text = instance_path.read_text(encoding="utf-8").rstrip()
-    appended = yaml.safe_dump(added, sort_keys=False, default_flow_style=False).rstrip()
-    instance_path.write_text(existing_text + "\n\n" + appended + "\n", encoding="utf-8")
-    return [r["name"] for r in added]
+
+    # Update scope of existing rules when the template's scope differs.
+    scope_updated: list[str] = []
+    for rule in instance_doc:
+        if not isinstance(rule, dict):
+            continue
+        name = rule.get("name")
+        tpl = by_name.get(name)
+        if tpl and tpl.get("scope") != rule.get("scope"):
+            rule["scope"] = tpl.get("scope")
+            scope_updated.append(name)
+
+    added_rules: list[dict] = [
+        rule for rule in template_doc
+        if isinstance(rule, dict) and rule.get("name") and rule["name"] not in existing_names
+    ]
+    added_names = [r["name"] for r in added_rules]
+
+    if not added_rules and not scope_updated:
+        return [], []
+
+    # Write the merged document. If only appending new rules and no scope
+    # updates, preserve the original text exactly (just append).
+    if added_rules and not scope_updated:
+        existing_text = instance_path.read_text(encoding="utf-8").rstrip()
+        appended = yaml.safe_dump(added_rules, sort_keys=False, default_flow_style=False).rstrip()
+        instance_path.write_text(existing_text + "\n\n" + appended + "\n", encoding="utf-8")
+    else:
+        # Scope update path — rewrite the full doc.
+        full = instance_doc + added_rules
+        text = yaml.safe_dump(full, sort_keys=False, default_flow_style=False)
+        instance_path.write_text(text, encoding="utf-8")
+
+    return added_names, scope_updated
 
 
 def _sweep_stale_artifacts(dir_path: Path) -> None:
@@ -308,7 +335,8 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         ("memory/rules.yaml", "memory/rules.yaml"),
     )
     installed: list[str] = []
-    merged_rules: list[str] = []
+    merged_added: list[str] = []
+    merged_updated: list[str] = []
     try:
         with ExitStack() as stack:
             tpl_dir = stack.enter_context(
@@ -327,7 +355,7 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
                     # instance file by `name`. Preserves user edits and ordering.
                     src_file = tpl_dir / src_path
                     if src_file.exists():
-                        merged_rules = _merge_rules(dest, src_file)
+                        merged_added, merged_updated = _merge_rules(dest, src_file)
     except Exception:
         pass  # Best-effort; don't fail upgrade over template install.
 
@@ -337,8 +365,10 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
     if installed:
         for path in installed:
             click.echo(f"  Installed: {path}")
-    if merged_rules:
-        click.echo(f"  Added rules to memory/rules.yaml: {', '.join(merged_rules)}")
+    if merged_added:
+        click.echo(f"  Added rules: {', '.join(merged_added)}")
+    if merged_updated:
+        click.echo(f"  Updated rule scope: {', '.join(merged_updated)}")
     if schema_changed:
         click.echo(
             f"  Schema changed ({instance_schema} → {engine_schema}). "
