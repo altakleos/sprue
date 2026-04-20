@@ -15,7 +15,16 @@ import sprue
 
 
 # Directories scaffolded in every new instance.
-_INSTANCE_DIRS = ("instance", "raw", "raw/assets", "wiki", "notebook", "inbox", "memory", "state")
+_INSTANCE_DIRS = ("instance", "instance/state", "raw", "raw/assets", "wiki", "notebook", "inbox", "memory", "state")
+
+# Empty state files to seed so agents never hit "file not found" on first read.
+# Each state ledger is YAML list; an empty list is the canonical zero state.
+_SEED_STATE_FILES = (
+    "instance/state/imports.yaml",
+    "instance/state/compilations.yaml",
+    "instance/state/image-annotations.yaml",
+    "instance/state/verifications.yaml",
+)
 
 
 def _ensure_assets_symlink(target: Path) -> bool:
@@ -124,6 +133,15 @@ def init(directory: str, identity: str | None, force: bool) -> None:
     # --- Scaffold instance directories ---
     for dirname in _INSTANCE_DIRS:
         (target / dirname).mkdir(parents=True, exist_ok=True)
+
+    # --- Seed empty state files ---
+    # Agents reading these on first import/compile/verify shouldn't hit
+    # "file not found" and bail. Empty files parse as None/[] in all
+    # consumers (append-only ledgers, check-* validators).
+    for rel_path in _SEED_STATE_FILES:
+        seed = target / rel_path
+        if not seed.exists():
+            seed.write_text("")
 
     # --- Create wiki/assets symlink to raw/assets (ADR-0047) ---
     # Obsidian refuses to render paths outside its vault (wiki/). The symlink
