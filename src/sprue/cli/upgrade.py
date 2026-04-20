@@ -352,10 +352,19 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
     # Some templates (like memory/rules.yaml) were added to init.py after
     # early KBs were created. Install them on upgrade if they don't exist,
     # so existing KBs pick up defaults like the verify rules bundle.
-    # Never overwrites user-edited files — only copies if the destination
-    # doesn't exist.
+    # Files installed additively — only copied if the destination doesn't exist.
+    # Never overwrites user-edited files.
     _UPGRADE_ADDITIVE_TEMPLATES = (
         ("memory/rules.yaml", "memory/rules.yaml"),
+    )
+    # Files always refreshed on upgrade — platform-managed operational
+    # references whose content must stay in sync with the engine. These
+    # files reference specific protocol paths and command semantics;
+    # stale versions produce the same class of bugs as a stale engine.
+    _UPGRADE_OVERWRITE_TEMPLATES = (
+        (".kiro/steering/sprue.md", ".kiro/steering/sprue.md"),
+        ("AGENTS.md", "AGENTS.md"),
+        ("CLAUDE.md", "CLAUDE.md"),
     )
     installed: list[str] = []
     merged_added: list[str] = []
@@ -380,6 +389,17 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
                     src_file = tpl_dir / src_path
                     if src_file.exists():
                         merged_added, merged_updated, merged_removed = _merge_rules(dest, src_file)
+            for src_path, dest_rel in _UPGRADE_OVERWRITE_TEMPLATES:
+                src_file = tpl_dir / src_path
+                if not src_file.exists():
+                    continue
+                dest = dir_path / dest_rel
+                new_text = src_file.read_text()
+                if dest.exists() and dest.read_text() == new_text:
+                    continue
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_text(new_text)
+                installed.append(dest_rel)
     except Exception:
         pass  # Best-effort; don't fail upgrade over template install.
 

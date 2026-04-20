@@ -16,9 +16,13 @@ This is a Sprue-powered knowledge base.
 
 | Command | What it does |
 |---|---|
-| `ingest <url>` | Fetch a source, save to `raw/`, compile to `wiki/` |
+| `import <url>` | Fetch a source, save to `raw/`, stop. Does NOT compile. |
+| `ingest <url>` | Fetch a source, save to `raw/`, compile to `wiki/` (composite of import + compile) |
+| `compile` | Process queued raw files into wiki pages |
 | `query <question>` | Answer from wiki knowledge |
 | `maintain` | Lint, upgrade quality, check health |
+
+Commands are matched LITERALLY on the leading verb. `import` and `ingest` are different commands; do not interpret one as the other.
 
 ## Directory Ownership
 

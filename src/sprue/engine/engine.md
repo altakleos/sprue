@@ -56,6 +56,8 @@ Composites for convenience:
 - `ingest <url> --deep` = import + compile + expand
 - `import --compile <url>` = import + compile (lighter, no gap analysis)
 
+Commands are matched LITERALLY on the user's leading verb. `import` does NOT imply `ingest`; run bare import and stop.
+
 ### Classification Model
 
 > Spec: [specs/emergent-classification.md](specs/emergent-classification.md)
@@ -173,6 +175,8 @@ Section contracts can be overridden per instance in `config.page_types`. If a ty
 - `ingest <url>` = Import + Compile (one source, immediately)
 - `ingest <url> --deep` = Import + Compile + Expand
 - Other composite requests: execute in order Import → Compile → Enhance → Cross-Link → Maintain.
+
+**Command matching is LITERAL.** The leading verb the user typed is what you execute. `import <url>` is NOT `ingest <url>`. If the user typed `import`, run bare Import and stop — even if ingest looks more convenient. Do not second-guess the user's literal command. Do not infer that they "meant" a composite. The composite shortcuts above activate ONLY when the user types that exact verb.
 
 **Status & queue management:**
 - `status` — show compile queue count, inbox count, last operation timestamps, KB stats. Include `📬 Inbox: N items` if `inbox/` contains any files.
