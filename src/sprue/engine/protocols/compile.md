@@ -201,7 +201,7 @@ This does NOT apply to `provenance: synthesized` pages. Synthesized pages have n
 This is the **write-time track** of the two-track attribution model. The verify protocol (`.sprue/protocols/verify.md`) handles the **verify-time track** for existing pages and synthesized content. Both tracks produce the same marker format and ledger entries.
 
 10. Write to `wiki/<directory>/<slug>.md`
-11. Run `bash .sprue/verify.sh --file <path>`. Fix violations before proceeding.
+11. Run `bash .sprue/verify.sh --file <path>`. Fix violations before proceeding. (verify auto-normalizes KB-root-relative image paths via `fix-image-paths.py` as a pre-flight — you do not need to run it separately.)
 12. Run cross-link single-page mode: scan existing pages for inbound links to the new page (per `.sprue/protocols/cross-link.md` rules)
 
 ### Existing pages (🔄 Update)

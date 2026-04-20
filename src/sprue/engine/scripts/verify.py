@@ -43,6 +43,33 @@ ROOT = instance_root()
 RULES_FILE = instance_root() / "memory" / "rules.yaml"
 WIKI = instance_root() / "wiki"
 RULE_TIMEOUT_SEC = 120
+FIX_IMAGE_PATHS_SCRIPT = Path(__file__).resolve().parent / "fix-image-paths.py"
+
+
+def _preflight_fix_image_paths(target_file: str) -> None:
+    """Auto-normalize image paths in a wiki page before validation.
+
+    Silent mechanical correction for the recurring KB-root-relative path
+    regression. No-op for non-wiki files or when the fixer is missing (keeps
+    verify resilient to partial engine installs).
+    """
+    path = Path(target_file)
+    if not path.is_absolute():
+        path = ROOT / path
+    try:
+        path.resolve().relative_to(WIKI.resolve())
+    except ValueError:
+        return
+    if path.suffix != ".md" or not FIX_IMAGE_PATHS_SCRIPT.is_file():
+        return
+    try:
+        subprocess.run(
+            [sys.executable, str(FIX_IMAGE_PATHS_SCRIPT), str(path)],
+            timeout=30,
+            check=False,
+        )
+    except Exception:
+        pass  # Fail open — the validator catches residual issues.
 
 
 @dataclass
@@ -289,6 +316,14 @@ def main() -> int:
     if args.target_file and not Path(args.target_file).is_file():
         print(f"File not found: {args.target_file}", file=sys.stderr)
         return 1
+
+    # Pre-flight: mechanically normalize image paths in wiki pages before
+    # running any validator. This removes the LLM from the correction loop —
+    # agents that emit KB-root-relative paths (a recurring regression) get
+    # silently corrected rather than seeing a validator failure they might
+    # ignore. Belt-and-suspenders with compile.md Step 10.5.
+    if args.target_file:
+        _preflight_fix_image_paths(args.target_file)
 
     rules = parse_rules(RULES_FILE)
     if not rules:
