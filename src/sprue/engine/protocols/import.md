@@ -2,11 +2,27 @@
 
 *Requires `AGENTS.md` and `.sprue/engine.md` in context (loaded via bootstrap).*
 
-**Trigger:** "import", "save this", "capture", "bookmark", a bare URL, or a file path.
+**Trigger:** "import", "save this", "capture", "bookmark", "ingest", a bare URL, or a file path.
+
+## ⚠️ Ingest mode — READ FIRST
+
+If the user said **`ingest <url>`** OR **`import --compile <url>`** OR affirmatively accepted a prompt like "ingest this article?" (e.g., answered `y`/`yes`/accepted), you MUST execute the `ingest` workflow below. This overrides the "and stop" language in the Role section and the "❌ Create wiki pages" item in the "What IMPORT does NOT do" list — those apply to **bare `import`**, NOT to `ingest`.
+
+**`ingest` workflow (MANDATORY when triggered by ingest or an affirmative prompt):**
+1. Run ALL steps of this IMPORT protocol through Step 6 (finalize entry)
+2. **Do NOT stop** after the import confirmation line
+3. **Immediately** read `.sprue/protocols/compile.md` and run COMPILE on the just-imported raw file
+4. End with both the import line and the compile result
+
+The `--deep` variant (`ingest <url> --deep`) adds: after COMPILE, read `.sprue/protocols/expand.md` and run it on the compiled page.
+
+Do NOT ask the user "ready to compile?" — that's the bare `import` prompt, not `ingest`. `ingest` means go all the way.
+
+---
 
 ## Role
 
-Fast, intelligent capture. Fetch content, save the original untouched to `raw/`, record classification metadata in `imports.yaml`, and stop. No compilation, no wiki pages, no linking.
+Fast, intelligent capture. Fetch content, save the original untouched to `raw/`, record classification metadata in `imports.yaml`. For bare `import`, **stop** after capture — no compilation, no wiki pages, no linking. For `ingest` (see above), continue into COMPILE.
 
 IMPORT determines **content type** from the source format (trivial, no LLM needed) and extracts the **title**. Facet classification (see `.sprue/defaults.yaml` → `facets:`) is COMPILE's job — they require understanding the content.
 
@@ -195,20 +211,10 @@ Process each independently. One confirmation line per URL. Failures don't block 
 
 ---
 
-## Shortcut: `import --compile`
-
-When the user says `import --compile <url>` or `ingest <url>`:
-
-1. Run the full IMPORT protocol above
-2. Immediately run COMPILE (read `.sprue/protocols/compile.md`) on just that one raw file
-3. This is sugar for the common "save and process now" workflow
-
----
-
 ## What IMPORT does NOT do
 
-- ❌ Create wiki pages
-- ❌ Generate markdown summaries or compilations
+- ❌ Create wiki pages (unless `ingest` — see top of file)
+- ❌ Generate markdown summaries or compilations (unless `ingest`)
 - ❌ Add wiki frontmatter or section structure
 - ❌ Create wikilinks
 - ❌ Run verify.sh
