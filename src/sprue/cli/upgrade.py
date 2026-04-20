@@ -50,35 +50,59 @@ def _read_schema_window(path: Path) -> tuple[int, int] | None:
     return None
 
 
-def _merge_rules(instance_path: Path, template_path: Path) -> tuple[list[str], list[str]]:
+def _merge_rules(instance_path: Path, template_path: Path) -> tuple[list[str], list[str], list[str]]:
     """Append rules from the template into the instance rules.yaml by name,
-    and update scope of existing rules when it differs from the template.
+    update scope of existing rules when it differs from the template, and
+    remove instance rules that the template has retired.
 
-    Preserves user-edited commands and ordering. Scope is platform-controlled
-    (it governs when a validator fires) and must stay in sync with the engine.
-    Returns (added_names, scope_updated_names). Silently no-ops on parse
-    errors (best-effort).
+    Preserves user-edited commands and ordering for rules the template still
+    knows about. Platform-defined rules that the template removed are dropped
+    — they typically reference engine scripts that have been deleted.
+
+    Retired rules are identified by a naming prefix convention — any rule
+    whose name starts with ``check-`` or matches a known-platform name is
+    managed by the platform. User-added rules (e.g., ``user-custom-rule``)
+    with names that never appeared in any template are preserved.
+
+    Returns (added, scope_updated, removed). Best-effort on parse errors.
     """
     try:
         instance_doc = yaml.safe_load(instance_path.read_text(encoding="utf-8")) or []
         template_doc = yaml.safe_load(template_path.read_text(encoding="utf-8")) or []
     except Exception:
-        return [], []
+        return [], [], []
     if not isinstance(instance_doc, list) or not isinstance(template_doc, list):
-        return [], []
+        return [], [], []
     by_name = {r["name"]: r for r in template_doc if isinstance(r, dict) and r.get("name")}
+    template_names = set(by_name)
     existing_names = {r.get("name") for r in instance_doc if isinstance(r, dict)}
 
-    # Update scope of existing rules when the template's scope differs.
+    # Retired platform rules — rules in the instance whose command points at
+    # a .sprue/scripts/ path. Those are platform-managed; if the template
+    # no longer has them, drop them.
+    def _is_platform(rule: dict) -> bool:
+        cmd = rule.get("command")
+        if isinstance(cmd, list) and any(isinstance(c, str) and ".sprue/scripts/" in c for c in cmd):
+            return True
+        shell = rule.get("shell") or ""
+        return isinstance(shell, str) and ".sprue/scripts/" in shell
+
+    kept: list[dict] = []
+    removed: list[str] = []
     scope_updated: list[str] = []
     for rule in instance_doc:
         if not isinstance(rule, dict):
+            kept.append(rule)
             continue
         name = rule.get("name")
+        if name not in template_names and _is_platform(rule):
+            removed.append(name)
+            continue
         tpl = by_name.get(name)
         if tpl and tpl.get("scope") != rule.get("scope"):
             rule["scope"] = tpl.get("scope")
             scope_updated.append(name)
+        kept.append(rule)
 
     added_rules: list[dict] = [
         rule for rule in template_doc
@@ -86,22 +110,21 @@ def _merge_rules(instance_path: Path, template_path: Path) -> tuple[list[str], l
     ]
     added_names = [r["name"] for r in added_rules]
 
-    if not added_rules and not scope_updated:
-        return [], []
+    if not added_rules and not scope_updated and not removed:
+        return [], [], []
 
-    # Write the merged document. If only appending new rules and no scope
-    # updates, preserve the original text exactly (just append).
-    if added_rules and not scope_updated:
+    # If nothing structural changed — only appending new rules with no scope
+    # updates or removals — preserve existing text byte-for-byte.
+    if added_rules and not scope_updated and not removed:
         existing_text = instance_path.read_text(encoding="utf-8").rstrip()
         appended = yaml.safe_dump(added_rules, sort_keys=False, default_flow_style=False).rstrip()
         instance_path.write_text(existing_text + "\n\n" + appended + "\n", encoding="utf-8")
     else:
-        # Scope update path — rewrite the full doc.
-        full = instance_doc + added_rules
+        full = kept + added_rules
         text = yaml.safe_dump(full, sort_keys=False, default_flow_style=False)
         instance_path.write_text(text, encoding="utf-8")
 
-    return added_names, scope_updated
+    return added_names, scope_updated, removed
 
 
 def _sweep_stale_artifacts(dir_path: Path) -> None:
@@ -337,6 +360,7 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
     installed: list[str] = []
     merged_added: list[str] = []
     merged_updated: list[str] = []
+    merged_removed: list[str] = []
     try:
         with ExitStack() as stack:
             tpl_dir = stack.enter_context(
@@ -355,7 +379,7 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
                     # instance file by `name`. Preserves user edits and ordering.
                     src_file = tpl_dir / src_path
                     if src_file.exists():
-                        merged_added, merged_updated = _merge_rules(dest, src_file)
+                        merged_added, merged_updated, merged_removed = _merge_rules(dest, src_file)
     except Exception:
         pass  # Best-effort; don't fail upgrade over template install.
 
@@ -369,6 +393,8 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         click.echo(f"  Added rules: {', '.join(merged_added)}")
     if merged_updated:
         click.echo(f"  Updated rule scope: {', '.join(merged_updated)}")
+    if merged_removed:
+        click.echo(f"  Retired rules: {', '.join(merged_removed)}")
     if schema_changed:
         click.echo(
             f"  Schema changed ({instance_schema} → {engine_schema}). "

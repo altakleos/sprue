@@ -10,6 +10,6 @@
   command: ["python3", ".sprue/scripts/check-asset-capture.py", "--quiet"]
   scope: whole
 
-- name: page-uses-assets
-  command: ["python3", ".sprue/scripts/check-page-uses-assets.py", "--quiet"]
+- name: triage-done
+  command: ["python3", ".sprue/scripts/check-triage-done.py", "--quiet"]
   scope: page
