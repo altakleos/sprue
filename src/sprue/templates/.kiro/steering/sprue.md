@@ -4,8 +4,10 @@ On EVERY session start, before responding to any user message:
 1. Read `.sprue/engine.md` — your primary operational reference.
 2. Read `instance/identity.md` — domain scope and voice.
 
-Commands you must recognize (read the protocol before executing):
-- `ingest <url>` → `.sprue/protocols/import.md` then `.sprue/protocols/compile.md`
+Commands you must recognize (read the protocol before executing). Match the user's LITERAL leading verb — do NOT interpret one verb as another:
+- `import <url>` → `.sprue/protocols/import.md` (fetch + save to raw/ only — STOP after capture)
+- `ingest <url>` → `.sprue/protocols/import.md` then `.sprue/protocols/compile.md` (composite: fetch + compile to wiki/)
+- `ingest <url> --deep` → import.md then compile.md then `.sprue/protocols/expand.md`
 - `compile` → `.sprue/protocols/compile.md`
 - `expand` or `expand into <topic>` → `.sprue/protocols/expand.md`
 - `enhance` → `.sprue/protocols/enhance.md`
