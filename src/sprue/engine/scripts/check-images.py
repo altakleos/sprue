@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json as jsonlib
+import os
 import re
 import sys
 from pathlib import Path
@@ -38,6 +39,17 @@ _ISSUE_LABELS = {
     "empty_alt": "empty alt text",
     "kb_root_relative": "KB-root-relative path (must be page-relative, e.g. '../raw/assets/…')",
 }
+
+
+def _pages_to_check() -> list[Path]:
+    """Use CONTENT_PAGES env var when set (verify --file scope), else whole wiki."""
+    env = os.environ.get("CONTENT_PAGES", "")
+    if env and Path(env).is_file():
+        paths = [line.strip() for line in Path(env).read_text().splitlines() if line.strip()]
+        return [ROOT / p for p in paths if p.endswith(".md")]
+    if not WIKI.is_dir():
+        return []
+    return list(find_wiki_pages(WIKI))
 
 
 def _violations_for(page: Path) -> list[dict]:
@@ -82,7 +94,7 @@ def main() -> int:
 
     violations: list[dict] = []
     page_stats: dict[str, dict] = {}
-    for page in find_wiki_pages(WIKI):
+    for page in _pages_to_check():
         slug = str(page.relative_to(WIKI)).removesuffix(".md")
         page_v = _violations_for(page)
         text = page.read_text(encoding="utf-8")
