@@ -40,6 +40,19 @@ def fixer(monkeypatch, tmp_path):
     spec = importlib.util.spec_from_file_location("fix_image_paths", _SCRIPT)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
+
+    # Adapt fix_page signature for existing tests that assert an int: the
+    # helper returns just the image-path count, matching the pre-0.1.33
+    # API. New tests that care about both counts call module.fix_page
+    # directly and unpack the tuple.
+    original_fix = module.fix_page
+
+    def _path_count_only(page):
+        p, _c = original_fix(page)
+        return p
+
+    module.fix_page = _path_count_only
+    module.fix_page_full = original_fix
     yield module
     er_mod._clear_cache()
 
@@ -146,4 +159,77 @@ def test_non_wiki_page_noop(fixer, tmp_path):
     original = "![alt](raw/assets/x.jpg)\n"
     page.write_text(original)
     assert fixer.fix_page(page) == 0
+    assert page.read_text() == original
+
+
+# ---- Comment stripping (leaked <!-- original: ... --> tags) ----
+
+
+def test_strips_original_comment_alone(fixer, tmp_path):
+    """A page with only a leaked traceability comment gets it stripped."""
+    page = tmp_path / "wiki" / "foo.md"
+    page.write_text(
+        "![A cat](assets/x.jpg)\n"
+        "<!-- original: https://example.com/cat.jpg -->\n"
+    )
+    paths, comments = fixer.fix_page_full(page)
+    assert paths == 0
+    assert comments == 1
+    text = page.read_text()
+    assert "<!-- original:" not in text
+    assert "![A cat](assets/x.jpg)" in text
+
+
+def test_strips_multiple_original_comments(fixer, tmp_path):
+    page = tmp_path / "wiki" / "multi.md"
+    page.write_text(
+        "![a](assets/a.jpg)\n"
+        "<!-- original: https://e.com/a.jpg -->\n\n"
+        "Some text.\n\n"
+        "![b](assets/b.jpg)\n"
+        "<!-- original: https://e.com/b.jpg -->\n"
+    )
+    paths, comments = fixer.fix_page_full(page)
+    assert comments == 2
+    assert "<!-- original:" not in page.read_text()
+
+
+def test_strips_comment_and_rewrites_path_together(fixer, tmp_path):
+    """Comment stripping + path rewriting in one pass."""
+    page = tmp_path / "wiki" / "mixed.md"
+    page.write_text(
+        "![a](raw/assets/a.jpg)\n"
+        "<!-- original: https://e.com/a.jpg -->\n"
+    )
+    paths, comments = fixer.fix_page_full(page)
+    assert paths == 1
+    assert comments == 1
+    text = page.read_text()
+    assert "![a](assets/a.jpg)" in text
+    assert "<!-- original:" not in text
+
+
+def test_comment_stripping_idempotent(fixer, tmp_path):
+    page = tmp_path / "wiki" / "foo.md"
+    page.write_text(
+        "![a](assets/x.jpg)\n"
+        "<!-- original: https://example.com/x.jpg -->\n"
+    )
+    assert fixer.fix_page_full(page) == (0, 1)
+    # Second pass: nothing left to strip.
+    assert fixer.fix_page_full(page) == (0, 0)
+
+
+def test_unrelated_html_comments_untouched(fixer, tmp_path):
+    """Only ``<!-- original: ... -->`` is stripped. Other comments stay."""
+    page = tmp_path / "wiki" / "foo.md"
+    original = (
+        "<!-- TODO: add example -->\n"
+        "![a](assets/x.jpg)\n"
+        "<!-- FIXME: broken link -->\n"
+    )
+    page.write_text(original)
+    paths, comments = fixer.fix_page_full(page)
+    assert paths == 0
+    assert comments == 0
     assert page.read_text() == original
