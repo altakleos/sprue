@@ -383,6 +383,18 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
     except Exception:
         pass  # Best-effort; don't fail upgrade over template install.
 
+    # --- Create wiki/assets symlink if missing (ADR-0047) ---
+    # Existing KBs pre-dating the symlink convention won't have it.
+    # Create it here so Obsidian can render raw/assets/ from inside wiki/.
+    assets_symlink_created = False
+    assets_link = dir_path / "wiki" / "assets"
+    if (dir_path / "wiki").is_dir() and not (assets_link.is_symlink() or assets_link.exists()):
+        try:
+            assets_link.symlink_to(Path("..") / "raw" / "assets")
+            assets_symlink_created = True
+        except OSError:
+            pass  # Windows without dev mode, read-only fs, etc.
+
     # --- Success ---
     click.echo(f"Upgraded {dir_path}")
     click.echo(f"  {old_version} → {new_version}")
@@ -395,6 +407,8 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         click.echo(f"  Updated rule scope: {', '.join(merged_updated)}")
     if merged_removed:
         click.echo(f"  Retired rules: {', '.join(merged_removed)}")
+    if assets_symlink_created:
+        click.echo("  Created wiki/assets → ../raw/assets symlink (for Obsidian)")
     if schema_changed:
         click.echo(
             f"  Schema changed ({instance_schema} → {engine_schema}). "

@@ -17,6 +17,27 @@ import sprue
 # Directories scaffolded in every new instance.
 _INSTANCE_DIRS = ("instance", "raw", "raw/assets", "wiki", "notebook", "inbox", "memory", "state")
 
+
+def _ensure_assets_symlink(target: Path) -> bool:
+    """Create ``wiki/assets`` → ``../raw/assets`` symlink if missing.
+
+    Returns True when the symlink is created now, False when it already
+    exists or something blocks creation. Obsidian refuses to render paths
+    outside its vault; the symlink lets wiki pages reference
+    ``assets/<file>`` (depth-invariant) and have those paths resolve to
+    the immutable ``raw/assets/`` tree. See ADR-0047.
+    """
+    link = target / "wiki" / "assets"
+    if link.is_symlink() or link.exists():
+        return False
+    try:
+        link.symlink_to(Path("..") / "raw" / "assets")
+        return True
+    except OSError:
+        # Windows without developer mode, restricted filesystems, etc.
+        # Non-fatal — KB still works, Obsidian rendering degrades.
+        return False
+
 # Template files: (source name inside sprue.templates, destination relative to target).
 # These get {{variable}} rendering.
 _TEMPLATE_MAP = (
@@ -103,6 +124,11 @@ def init(directory: str, identity: str | None, force: bool) -> None:
     # --- Scaffold instance directories ---
     for dirname in _INSTANCE_DIRS:
         (target / dirname).mkdir(parents=True, exist_ok=True)
+
+    # --- Create wiki/assets symlink to raw/assets (ADR-0047) ---
+    # Obsidian refuses to render paths outside its vault (wiki/). The symlink
+    # makes raw/assets/ visible from inside the vault without duplication.
+    _ensure_assets_symlink(target)
 
     # --- Render templates ---
     variables = {

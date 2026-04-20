@@ -36,13 +36,14 @@ When citing an image-sourced claim, you may place the image near the claim:
 *Figure N: <description>.[^src-N]*
 ```
 
-**Path rules:** The annotation's `raw_path` is relative to the KB root (e.g., `raw/assets/foo.jpg`). In the wiki markdown, the path MUST be relative to the wiki page's directory so it renders in Obsidian, GitHub, and other standard markdown viewers:
+**Path rules:** The annotation's `raw_path` is relative to the KB root (e.g., `raw/assets/foo.jpg`). In the wiki markdown, use the page-local form `assets/<file>` which routes through the `wiki/assets → ../raw/assets` symlink. This form is depth-invariant (same for every wiki page regardless of nesting) and renders in Obsidian, GitHub, and VS Code.
 
-- Wiki page at `wiki/<slug>.md` → prefix path with `../` → `![alt](../raw/assets/foo.jpg)`
-- Wiki page at `wiki/<dir>/<slug>.md` → prefix with `../../` → `![alt](../../raw/assets/foo.jpg)`
+- Annotation `raw_path: raw/assets/foo.jpg` → `![alt](assets/foo.jpg)`
+
+Never use `raw/assets/foo.jpg`, `../raw/assets/foo.jpg`, or anything containing `..` — Obsidian refuses to render paths outside its vault (the vault is `wiki/`).
 - Wiki page at `wiki/<d1>/<d2>/<slug>.md` → prefix with `../../../`
 
-Never use the raw_path directly (`raw/assets/foo.jpg`) in the image tag — it will not resolve from the wiki page's location.
+Never use the raw_path directly (`raw/assets/foo.jpg`) or any parent-escape path (`../raw/assets/...`) in the image tag — Obsidian refuses paths outside its vault, and the `assets/` prefix routes through the vault-local symlink.
 
 The caption references the same marker as the claim it illustrates. If the image supports multiple claims, the caption cites the most prominent one. Entity pages: place a `subject-photo` hero image directly after TL;DR with a descriptive caption. Diagrams and charts go inline in the relevant section.
 
@@ -117,7 +118,7 @@ Kafka defaults to 7-day log retention[^src-1]. A single cluster supports up to 2
 ```markdown
 In throughput benchmarks, Kafka achieves approximately 2.1 million messages per second[^src-3].
 
-![Throughput comparison](../raw/assets/kafka-throughput-1-7b3e2f1a.png)
+![Throughput comparison](assets/kafka-throughput-1-7b3e2f1a.png)
 *Figure 1: Kafka vs RabbitMQ vs ActiveMQ throughput.[^src-3]*
 
 ## Sources
