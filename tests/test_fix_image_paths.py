@@ -43,12 +43,12 @@ def fixer(monkeypatch, tmp_path):
 
     # Adapt fix_page signature for existing tests that assert an int: the
     # helper returns just the image-path count, matching the pre-0.1.33
-    # API. New tests that care about both counts call module.fix_page
+    # API. New tests that care about all counts call module.fix_page
     # directly and unpack the tuple.
     original_fix = module.fix_page
 
     def _path_count_only(page):
-        p, _c = original_fix(page)
+        p, _c, _cap = original_fix(page)
         return p
 
     module.fix_page = _path_count_only
@@ -172,7 +172,7 @@ def test_strips_original_comment_alone(fixer, tmp_path):
         "![A cat](assets/x.jpg)\n"
         "<!-- original: https://example.com/cat.jpg -->\n"
     )
-    paths, comments = fixer.fix_page_full(page)
+    paths, comments, captions = fixer.fix_page_full(page)
     assert paths == 0
     assert comments == 1
     text = page.read_text()
@@ -189,7 +189,7 @@ def test_strips_multiple_original_comments(fixer, tmp_path):
         "![b](assets/b.jpg)\n"
         "<!-- original: https://e.com/b.jpg -->\n"
     )
-    paths, comments = fixer.fix_page_full(page)
+    paths, comments, captions = fixer.fix_page_full(page)
     assert comments == 2
     assert "<!-- original:" not in page.read_text()
 
@@ -201,7 +201,7 @@ def test_strips_comment_and_rewrites_path_together(fixer, tmp_path):
         "![a](raw/assets/a.jpg)\n"
         "<!-- original: https://e.com/a.jpg -->\n"
     )
-    paths, comments = fixer.fix_page_full(page)
+    paths, comments, captions = fixer.fix_page_full(page)
     assert paths == 1
     assert comments == 1
     text = page.read_text()
@@ -215,9 +215,9 @@ def test_comment_stripping_idempotent(fixer, tmp_path):
         "![a](assets/x.jpg)\n"
         "<!-- original: https://example.com/x.jpg -->\n"
     )
-    assert fixer.fix_page_full(page) == (0, 1)
+    assert fixer.fix_page_full(page) == (0, 1, 0)
     # Second pass: nothing left to strip.
-    assert fixer.fix_page_full(page) == (0, 0)
+    assert fixer.fix_page_full(page) == (0, 0, 0)
 
 
 def test_unrelated_html_comments_untouched(fixer, tmp_path):
@@ -229,7 +229,95 @@ def test_unrelated_html_comments_untouched(fixer, tmp_path):
         "<!-- FIXME: broken link -->\n"
     )
     page.write_text(original)
-    paths, comments = fixer.fix_page_full(page)
+    paths, comments, captions = fixer.fix_page_full(page)
     assert paths == 0
     assert comments == 0
     assert page.read_text() == original
+
+
+
+# ---- Caption injection from image-annotations.yaml ----
+
+
+def _write_annotations(tmp_path: Path, entries: list[dict]) -> None:
+    import yaml
+    (tmp_path / "instance" / "state").mkdir(parents=True, exist_ok=True)
+    path = tmp_path / "instance" / "state" / "image-annotations.yaml"
+    path.write_text(yaml.safe_dump(entries, sort_keys=False))
+
+
+def test_caption_injected_when_annotation_present(fixer, tmp_path):
+    _write_annotations(tmp_path, [
+        {"raw_path": "raw/assets/x.jpg", "classification": "informative",
+         "description": "A ragdoll kitten resting"},
+    ])
+    page = tmp_path / "wiki" / "foo.md"
+    page.write_text("![A kitten](assets/x.jpg)\n\nMore text.\n")
+    paths, comments, captions = fixer.fix_page_full(page)
+    assert captions == 1
+    text = page.read_text()
+    assert "*Figure 1: A ragdoll kitten resting.*" in text
+    idx_img = text.index("![A kitten]")
+    idx_cap = text.index("*Figure 1:")
+    assert idx_img < idx_cap
+
+
+def test_caption_numbering_increments(fixer, tmp_path):
+    _write_annotations(tmp_path, [
+        {"raw_path": "raw/assets/a.jpg", "classification": "informative",
+         "description": "First image"},
+        {"raw_path": "raw/assets/b.jpg", "classification": "informative",
+         "description": "Second image"},
+    ])
+    page = tmp_path / "wiki" / "foo.md"
+    page.write_text("![A](assets/a.jpg)\n\n![B](assets/b.jpg)\n")
+    _, _, captions = fixer.fix_page_full(page)
+    assert captions == 2
+    text = page.read_text()
+    assert "*Figure 1: First image.*" in text
+    assert "*Figure 2: Second image.*" in text
+
+
+def test_caption_skipped_for_decorative(fixer, tmp_path):
+    _write_annotations(tmp_path, [
+        {"raw_path": "raw/assets/d.jpg", "classification": "decorative",
+         "description": "A divider"},
+    ])
+    page = tmp_path / "wiki" / "foo.md"
+    page.write_text("![](assets/d.jpg)\n")
+    _, _, captions = fixer.fix_page_full(page)
+    assert captions == 0
+    assert "*Figure" not in page.read_text()
+
+
+def test_caption_skipped_when_no_annotation(fixer, tmp_path):
+    _write_annotations(tmp_path, [])
+    page = tmp_path / "wiki" / "foo.md"
+    page.write_text("![A](assets/orphan.jpg)\n")
+    _, _, captions = fixer.fix_page_full(page)
+    assert captions == 0
+
+
+def test_caption_idempotent_when_already_present(fixer, tmp_path):
+    _write_annotations(tmp_path, [
+        {"raw_path": "raw/assets/x.jpg", "classification": "informative",
+         "description": "A kitten"},
+    ])
+    page = tmp_path / "wiki" / "foo.md"
+    page.write_text("![A kitten](assets/x.jpg)\n\n*Figure 1: A kitten.*\n")
+    _, _, captions = fixer.fix_page_full(page)
+    assert captions == 0
+
+
+def test_caption_works_for_nested_page(fixer, tmp_path):
+    _write_annotations(tmp_path, [
+        {"raw_path": "raw/assets/x.jpg", "classification": "informative",
+         "description": "A nested image"},
+    ])
+    subdir = tmp_path / "wiki" / "cats"
+    subdir.mkdir()
+    page = subdir / "ragdoll.md"
+    page.write_text("![](../assets/x.jpg)\n")
+    _, _, captions = fixer.fix_page_full(page)
+    assert captions == 1
+    assert "*Figure 1: A nested image.*" in page.read_text()
