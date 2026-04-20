@@ -22,6 +22,8 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import SKIP_FILES, find_wiki_pages
 
@@ -30,15 +32,37 @@ from sprue.engine_root import instance_root
 
 WIKI = instance_root() / "wiki"
 ROOT = instance_root()
+ANNOTATIONS = ROOT / "instance" / "state" / "image-annotations.yaml"
 _IMG_RE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 _REMOTE_PREFIXES = ("http://", "https://", "data:")
+_DECORATIVE_CLASSIFICATIONS = {"decorative", "unknown"}
 
 
 _ISSUE_LABELS = {
     "missing_file": "missing file",
     "empty_alt": "empty alt text",
     "kb_root_relative": "KB-root-relative path (must be page-relative, e.g. '../raw/assets/…')",
+    "not_annotated": "referenced image has no annotation in image-annotations.yaml — run compile Step 4 (Triage)",
+    "decorative_referenced": "referenced image is classified decorative/unknown in image-annotations.yaml — do not place it in wiki pages",
 }
+
+
+def _load_annotations() -> dict[str, str]:
+    """Return mapping: raw/assets/<file> → classification (e.g. 'diagram')."""
+    if not ANNOTATIONS.is_file():
+        return {}
+    doc = yaml.safe_load(ANNOTATIONS.read_text(encoding="utf-8")) or []
+    if not isinstance(doc, list):
+        return {}
+    out: dict[str, str] = {}
+    for entry in doc:
+        if not isinstance(entry, dict):
+            continue
+        raw_path = entry.get("raw_path")
+        classification = entry.get("classification") or ""
+        if raw_path:
+            out[raw_path] = classification
+    return out
 
 
 def _pages_to_check() -> list[Path]:
@@ -52,13 +76,18 @@ def _pages_to_check() -> list[Path]:
     return list(find_wiki_pages(WIKI))
 
 
-def _violations_for(page: Path) -> list[dict]:
+def _violations_for(page: Path, annotations: dict[str, str]) -> list[dict]:
     """Return violation records for image references in *page*.
 
     Image paths in wiki pages must be relative to the page's directory so
     they render in standard markdown viewers (Obsidian, GitHub, VS Code).
     KB-root-relative paths like ``raw/assets/foo.jpg`` appear valid when
     resolved from ROOT but break in viewers — flag them explicitly.
+
+    When the image resolves to a file under ``raw/assets/``, also verify
+    it has a non-decorative annotation in ``image-annotations.yaml``.
+    References to un-triaged or decorative images indicate the LLM
+    fabricated a reference or picked an image that triage excluded.
     """
     text = page.read_text(encoding="utf-8")
     slug = str(page.relative_to(WIKI)).removesuffix(".md")
@@ -74,8 +103,24 @@ def _violations_for(page: Path) -> list[dict]:
             # targeted hint.
             issue = "kb_root_relative" if (ROOT / ref).is_file() else "missing_file"
             violations.append({"page": slug, "path": ref, "issue": issue})
-        elif not alt.strip():
+            continue
+        if not alt.strip():
             violations.append({"page": slug, "path": ref, "issue": "empty_alt"})
+            continue
+        # Canonicalize to a ``raw/assets/<file>`` form for annotation lookup.
+        try:
+            rel = page_relative.resolve().relative_to(ROOT.resolve())
+        except ValueError:
+            continue
+        rel_str = str(rel).replace(os.sep, "/")
+        if not rel_str.startswith("raw/assets/"):
+            continue  # Non-asset images (e.g., user-dropped) not triage-gated.
+        if annotations:
+            classification = annotations.get(rel_str)
+            if classification is None:
+                violations.append({"page": slug, "path": ref, "issue": "not_annotated"})
+            elif classification in _DECORATIVE_CLASSIFICATIONS:
+                violations.append({"page": slug, "path": ref, "issue": "decorative_referenced"})
     return violations
 
 
@@ -94,9 +139,10 @@ def main() -> int:
 
     violations: list[dict] = []
     page_stats: dict[str, dict] = {}
+    annotations = _load_annotations()
     for page in _pages_to_check():
         slug = str(page.relative_to(WIKI)).removesuffix(".md")
-        page_v = _violations_for(page)
+        page_v = _violations_for(page, annotations)
         text = page.read_text(encoding="utf-8")
         local = [m for m in _IMG_RE.findall(text) if not m[1].startswith(_REMOTE_PREFIXES)]
         page_stats[slug] = {"total": len(local), "violations": page_v}
