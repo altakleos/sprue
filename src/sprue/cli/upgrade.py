@@ -395,6 +395,19 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         except OSError:
             pass  # Windows without dev mode, read-only fs, etc.
 
+    # --- Seed missing state files ---
+    # Matches init behavior; older KBs scaffolded before seed-state-files
+    # didn't get these created, so agents hit "file not found" on first
+    # import. Empty files parse as None/[] in all consumers.
+    seeded_state: list[str] = []
+    state_dir = dir_path / "instance" / "state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    for rel_name in ("imports.yaml", "compilations.yaml", "image-annotations.yaml", "verifications.yaml"):
+        seed = state_dir / rel_name
+        if not seed.exists():
+            seed.write_text("")
+            seeded_state.append(f"instance/state/{rel_name}")
+
     # --- Success ---
     click.echo(f"Upgraded {dir_path}")
     click.echo(f"  {old_version} → {new_version}")
@@ -409,6 +422,8 @@ def upgrade(directory: str, accept_schema_change: bool) -> None:
         click.echo(f"  Retired rules: {', '.join(merged_removed)}")
     if assets_symlink_created:
         click.echo("  Created wiki/assets → ../raw/assets symlink (for Obsidian)")
+    if seeded_state:
+        click.echo(f"  Seeded empty state files: {', '.join(seeded_state)}")
     if schema_changed:
         click.echo(
             f"  Schema changed ({instance_schema} → {engine_schema}). "
